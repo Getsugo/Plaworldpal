@@ -14,7 +14,7 @@ import { decodeRawDataEntries } from "./gvas-palworldCustomReaders.js";
  */
 export function parseSaveFile(arrayBuffer, onLog = () => {}) {
   onLog("Décompression du conteneur .sav...");
-  const gvasBytes = decompressSav(arrayBuffer);
+  const gvasBytes = decompressSav(arrayBuffer, onLog);
   onLog(`Décompressé : ${gvasBytes.byteLength} octets de données GVAS.`);
 
   const reader = new BinaryReader(gvasBytes);

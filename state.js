@@ -8,6 +8,7 @@ const LS_KEYS = {
   players: "palworld_breeding_players",
   currentUid: "palworld_breeding_current_uid",
   filename: "palworld_breeding_filename",
+  viewMode: "palworld_breeding_view_mode",
 };
 
 export const state = {
@@ -15,6 +16,10 @@ export const state = {
   players: JSON.parse(localStorage.getItem(LS_KEYS.players) || "[]"),
   currentPlayerUid: localStorage.getItem(LS_KEYS.currentUid) || null,
   filename: localStorage.getItem(LS_KEYS.filename) || null,
+  // "global"  : explore tous les Pals du jeu, sans sauvegarde chargée.
+  // "save"    : filtre sur les Pals réellement possédés.
+  // Par défaut "global" si rien n'est chargé (voir aussi forceViewModeConsistency()).
+  viewMode: localStorage.getItem(LS_KEYS.viewMode) || "global",
 };
 
 export function persist() {
@@ -24,6 +29,7 @@ export function persist() {
   else localStorage.removeItem(LS_KEYS.currentUid);
   if (state.filename) localStorage.setItem(LS_KEYS.filename, state.filename);
   else localStorage.removeItem(LS_KEYS.filename);
+  localStorage.setItem(LS_KEYS.viewMode, state.viewMode);
 }
 
 export function resetState() {
@@ -31,7 +37,20 @@ export function resetState() {
   state.players = [];
   state.currentPlayerUid = null;
   state.filename = null;
+  state.viewMode = "global";
   persist();
+}
+
+/**
+ * Garantit la cohérence du mode d'affichage : si aucune sauvegarde n'est
+ * chargée, le mode "save" n'a pas de sens -> on force "global". À appeler
+ * après tout changement de `state.pals` (import, reset).
+ */
+export function forceViewModeConsistency() {
+  if (state.pals.length === 0 && state.viewMode === "save") {
+    state.viewMode = "global";
+    persist();
+  }
 }
 
 // --- Bases de données statiques (modules JS, pas de fetch — fonctionne aussi

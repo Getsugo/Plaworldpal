@@ -2,8 +2,8 @@
 import { parseSaveFile } from "./saveParser.js";
 import { state, persist, resetState, allPalNames } from "./state.js";
 import { initCollectionTab, renderCollection } from "./ui-collectionTab.js";
-import { initBreedingTab } from "./ui-breedingTab.js";
-import { initMapTab } from "./ui-mapTab.js";
+import { initBreedingTab, refreshBreedingModeToggle } from "./ui-breedingTab.js";
+import { initMapTab, refreshMapModeToggle } from "./ui-mapTab.js";
 
 document.getElementById("pal-list").innerHTML =
   allPalNames.map(n => `<option value="${n}">`).join("");
@@ -15,7 +15,12 @@ const tabPanels = document.querySelectorAll(".tab-panel");
 export function activateTab(name) {
   tabButtons.forEach(b => b.classList.toggle("tab-active", b.dataset.tab === name));
   tabPanels.forEach(p => p.classList.toggle("hidden", p.id !== `tab-${name}`));
+  // Chaque onglet re-synchronise son affichage avec l'état courant à chaque
+  // activation (utile notamment pour que le commutateur Global/Sauvegarde
+  // reflète toujours la présence ou non d'une sauvegarde chargée).
   if (name === "collection") renderCollection();
+  if (name === "breeding") refreshBreedingModeToggle();
+  if (name === "map") refreshMapModeToggle();
 }
 tabButtons.forEach(btn => btn.addEventListener("click", () => activateTab(btn.dataset.tab)));
 

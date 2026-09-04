@@ -100,4 +100,32 @@ export class BreedingCalculator {
 
     return results;
   }
+
+  /**
+   * Mode "Global" : toutes les paires théoriquement possibles parmi TOUS
+   * les Pals connus de la base de données (pas seulement ceux possédés).
+   * Utile pour explorer les combinaisons sans avoir chargé de sauvegarde.
+   * Ne renvoie pas de comptage (on ne sait pas ce que le joueur possède).
+   */
+  findAllPossibleCombos(targetName) {
+    const species = this.sortedRanks.map(([name]) => name);
+    const results = [];
+
+    for (let i = 0; i < species.length; i++) {
+      for (let j = i; j < species.length; j++) {
+        const speciesA = species[i];
+        const speciesB = species[j];
+        const predicted = this.predictChild(speciesA, speciesB);
+        if (predicted !== targetName) continue;
+
+        results.push({
+          parent_a: speciesA,
+          parent_b: speciesB,
+          special_combo: this.specialComboChild.has(this._pairKey(speciesA, speciesB)),
+          same_species: speciesA === speciesB,
+        });
+      }
+    }
+    return results;
+  }
 }
