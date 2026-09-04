@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14201a">
+<title>Assistant Élevage Palworld</title>
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  body { font-family: 'Nunito', sans-serif; background: radial-gradient(circle at top, #16241c 0%, #0c1310 70%); }
+  .font-title { font-family: 'Baloo 2', sans-serif; }
+  .pal-card { transition: transform .15s ease, box-shadow .15s ease; }
+  .pal-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #3a5a44; border-radius: 4px; }
+  .tab-active { background: #ea9a3e; color: #1a1207; }
+</style>
+</head>
+<body class="text-emerald-50 min-h-screen">
+
+<header class="border-b border-emerald-900/60 bg-[#0f1a13]/80 backdrop-blur sticky top-0 z-20">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <h1 class="font-title text-xl md:text-2xl text-amber-300 flex items-center gap-2">
+      🐾 Assistant Élevage <span class="text-emerald-400">Palworld</span>
+    </h1>
+    <div id="save-status" class="text-xs md:text-sm text-emerald-300/70">Aucune sauvegarde chargée</div>
+  </div>
+  <nav class="max-w-6xl mx-auto px-4 flex gap-2 pb-2 text-sm font-semibold overflow-x-auto">
+    <button data-tab="import" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">📁 Import</button>
+    <button data-tab="collection" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">📋 Collection</button>
+    <button data-tab="breeding" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">🥚 Élevage</button>
+    <button data-tab="map" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">🗺️ Carte</button>
+  </nav>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+  <!-- ONGLET IMPORT -->
+  <section id="tab-import" class="tab-panel space-y-4">
+    <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-6">
+      <h2 class="font-title text-lg text-amber-300 mb-2">Importer votre sauvegarde</h2>
+      <p class="text-sm text-emerald-100/70 mb-3">
+        Tout le décodage se fait dans votre navigateur — rien n'est envoyé sur un serveur.
+        Sélectionnez directement votre fichier <code class="bg-black/30 px-1 rounded">Level.sav</code>,
+        situé par défaut dans :<br>
+        <code class="bg-black/30 px-1 rounded text-xs">%LocalAppData%\Pal\Saved\SaveGames\&lt;id&gt;\&lt;world_id&gt;\Level.sav</code>
+      </p>
+      <div id="dropzone" class="border-2 border-dashed border-emerald-700/60 rounded-xl p-10 text-center cursor-pointer hover:border-amber-400 transition">
+        <p class="text-emerald-200/80">Glissez-déposez votre <b>Level.sav</b> ici, ou touchez pour parcourir</p>
+        <input id="file-input" type="file" accept=".sav" class="hidden">
+      </div>
+      <div id="import-result" class="mt-4 text-sm"></div>
+      <div id="logs-toggle-wrap" class="mt-3 hidden">
+        <button id="logs-toggle" class="text-xs text-emerald-300/70 underline">Afficher les logs de parsing</button>
+        <pre id="logs-box" class="hidden mt-2 bg-black/40 rounded-lg p-3 text-[11px] text-emerald-200/70 max-h-64 overflow-auto whitespace-pre-wrap"></pre>
+      </div>
+      <div id="player-picker" class="mt-4 hidden">
+        <label class="text-sm text-emerald-200/70">Joueur :</label>
+        <select id="player-select" class="ml-2 bg-black/30 border border-emerald-800 rounded px-2 py-1 text-sm"></select>
+      </div>
+      <div class="mt-4 text-xs text-emerald-100/50">
+        Aucune donnée ne quitte votre appareil : traitement en mémoire, résultat stocké
+        uniquement dans le localStorage de ce navigateur.
+      </div>
+      <button id="reset-btn" class="mt-2 text-xs text-red-300/80 underline hidden">Effacer les données locales</button>
+    </div>
+  </section>
+
+  <!-- ONGLET COLLECTION -->
+  <section id="tab-collection" class="tab-panel hidden space-y-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <input id="collection-filter" type="text" placeholder="Filtrer par nom..." class="bg-black/30 border border-emerald-800 rounded px-3 py-1.5 text-sm flex-1 min-w-[180px]">
+    </div>
+    <div id="collection-warning" class="text-xs text-amber-300/90"></div>
+    <div id="collection-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+  </section>
+
+  <!-- ONGLET BREEDING -->
+  <section id="tab-breeding" class="tab-panel hidden space-y-4">
+    <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-5">
+      <label class="text-sm text-emerald-200/70">Pal recherché :</label>
+      <div class="flex gap-2 mt-1">
+        <input id="target-search" list="pal-list" type="text" placeholder="Ex: Anubis, Jetragon..." class="flex-1 bg-black/30 border border-emerald-800 rounded px-3 py-2 text-sm">
+        <datalist id="pal-list"></datalist>
+        <button id="compute-btn" class="bg-amber-400 hover:bg-amber-300 text-[#1a1207] font-bold px-4 py-2 rounded-lg text-sm">Calculer</button>
+      </div>
+    </div>
+    <div id="breeding-result" class="space-y-3"></div>
+  </section>
+
+  <!-- ONGLET MAP -->
+  <section id="tab-map" class="tab-panel hidden space-y-4">
+    <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-5">
+      <label class="text-sm text-emerald-200/70">Pal :</label>
+      <div class="flex gap-2 mt-1">
+        <input id="map-search" list="pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-emerald-800 rounded px-3 py-2 text-sm">
+        <button id="map-btn" class="bg-emerald-500 hover:bg-emerald-400 text-[#0c1310] font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
+      </div>
+    </div>
+    <div id="map-result" class="space-y-2"></div>
+  </section>
+
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
