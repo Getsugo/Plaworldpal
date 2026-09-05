@@ -79,12 +79,13 @@
       <h2 class="font-title text-lg text-amber-300 mb-2">Importer votre sauvegarde</h2>
       <p class="text-sm text-emerald-100/70 mb-3">
         Tout le décodage se fait dans votre navigateur — rien n'est envoyé sur un serveur.
-        Sélectionnez directement votre fichier <code class="bg-black/30 px-1 rounded">Level.sav</code>,
-        situé par défaut dans :<br>
+        Sélectionnez votre fichier <code class="bg-black/30 px-1 rounded">Level.sav</code> (le plus complet,
+        contient tous les Pals) ou un fichier joueur individuel dans
+        <code class="bg-black/30 px-1 rounded">Players\&lt;PlayerUID&gt;.sav</code>, situés par défaut dans :<br>
         <code class="bg-black/30 px-1 rounded text-xs">%LocalAppData%\Pal\Saved\SaveGames\&lt;id&gt;\&lt;world_id&gt;\Level.sav</code>
       </p>
       <div id="dropzone" class="border-2 border-dashed border-emerald-700/60 rounded-xl p-10 text-center cursor-pointer hover:border-amber-400 transition">
-        <p class="text-emerald-200/80">Glissez-déposez votre <b>Level.sav</b> ici, ou touchez pour parcourir</p>
+        <p class="text-emerald-200/80">Glissez-déposez votre <b>.sav</b> ici, ou touchez pour parcourir</p>
         <input id="file-input" type="file" accept=".sav" class="hidden">
       </div>
       <div id="import-result" class="mt-4 text-sm"></div>
@@ -148,7 +149,7 @@
     </div>
 
     <div id="map-status" class="text-sm"></div>
-    <div id="leaflet-map-container" class="w-full min-h-[75vh] rounded-xl overflow-hidden border border-slate-800"></div>
+    <div id="leaflet-map-container" class="w-full min-h-[80vh] rounded-xl overflow-hidden border border-slate-800"></div>
   </section>
 
 </main>

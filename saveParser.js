@@ -4,13 +4,25 @@ import { readHeader, readPropertiesUntilNone } from "./gvas-gvasParser.js";
 import { decodeRawDataEntries } from "./gvas-palworldCustomReaders.js";
 
 /**
- * Point d'entrée principal : prend un ArrayBuffer (contenu du fichier
- * Level.sav) et retourne la structure {players, pals} exploitable par le
- * reste de l'app.
+ * Point d'entrée principal : prend un ArrayBuffer (contenu d'un fichier
+ * Level.sav OU d'un fichier joueur individuel Players/<PlayerUID>.sav) et
+ * retourne la structure {players, pals} exploitable par le reste de l'app.
  *
- * `onLog` (optionnel) reçoit des messages de progression/debug — branché sur
- * l'onglet Import en mode "debug" pour aider à diagnostiquer un éventuel
- * décalage dans le parsing binaire (voir README).
+ * ⚠️ Honnêteté sur Players/*.sav : la structure racine d'un fichier
+ * Level.sav (propriété "worldSaveData" contenant "CharacterSaveParameterMap")
+ * est bien documentée par la communauté. Celle des fichiers joueur
+ * individuels l'est beaucoup moins, et peut varier selon les versions du
+ * jeu — je n'ai pas de confirmation fiable du nom exact de la propriété
+ * racine qui y contiendrait les Pals. Plutôt que de deviner un chemin fixe
+ * (ex: "SaveData.xxx") au risque de me tromper silencieusement, la fonction
+ * ci-dessous cherche "CharacterSaveParameterMap" PARTOUT dans l'arbre de
+ * propriétés décodé, à n'importe quelle profondeur. Ça fonctionne pour
+ * Level.sav (où on sait qu'elle existe) et ça donne aussi une chance
+ * réaliste de fonctionner pour un fichier joueur si une structure du même
+ * nom y est présente — sans reposer sur une hypothèse de chemin non
+ * vérifiée.
+ *
+ * `onLog` (optionnel) reçoit des messages de progression/debug.
  */
 export function parseSaveFile(arrayBuffer, onLog = () => {}) {
   onLog("Décompression du conteneur .sav...");
@@ -26,21 +38,20 @@ export function parseSaveFile(arrayBuffer, onLog = () => {}) {
   onLog("Lecture du bloc de propriétés racine (peut prendre plusieurs secondes sur une grosse sauvegarde)...");
   const rootProps = readPropertiesUntilNone(reader);
 
-  const worldSaveData = rootProps.worldSaveData && rootProps.worldSaveData.value;
-  if (!worldSaveData) {
+  onLog("Recherche de 'CharacterSaveParameterMap' dans l'arbre de propriétés (Level.sav ou Players/*.sav)...");
+  const charMap = findCharacterSaveParameterMap(rootProps);
+
+  if (!charMap || !charMap.entries) {
     throw new Error(
-      "Propriété 'worldSaveData' introuvable à la racine. Ce fichier n'est peut-être pas un " +
-        "Level.sav (essayez un fichier joueur individuel, ou vérifiez la version du jeu)."
+      "'CharacterSaveParameterMap' introuvable dans ce fichier. Si c'est un fichier Players/*.sav, " +
+        "il se peut que cette version du jeu stocke les Pals sous un nom de propriété différent — " +
+        "activez les logs de parsing et montrez-les pour qu'on puisse ajuster. Level.sav reste le " +
+        "fichier le plus fiable pour extraire l'intégralité des Pals."
     );
   }
 
-  const charMapProp = worldSaveData.CharacterSaveParameterMap;
-  if (!charMapProp || !charMapProp.value || !charMapProp.value.entries) {
-    throw new Error("'CharacterSaveParameterMap' introuvable ou vide : aucun Pal/joueur à extraire.");
-  }
-
-  onLog(`${charMapProp.value.entries.length} entrée(s) trouvée(s) dans CharacterSaveParameterMap.`);
-  const decoded = decodeRawDataEntries(charMapProp.value.entries);
+  onLog(`${charMap.entries.length} entrée(s) trouvée(s) dans CharacterSaveParameterMap.`);
+  const decoded = decodeRawDataEntries(charMap.entries);
 
   const players = [];
   const pals = [];
@@ -81,6 +92,52 @@ export function parseSaveFile(arrayBuffer, onLog = () => {}) {
 
   onLog(`Extraction terminée : ${players.length} joueur(s), ${pals.length} Pal(s).`);
   return { header, players, pals };
+}
+
+/**
+ * Recherche récursive et générique d'une propriété nommée
+ * "CharacterSaveParameterMap" (valeur de type MapProperty, avec un champ
+ * `.entries`) n'importe où dans l'arbre de propriétés décodé — pas de
+ * chemin fixe supposé, pour rester valable aussi bien pour Level.sav que
+ * pour un fichier joueur dont la structure exacte n'est pas garantie.
+ */
+function findCharacterSaveParameterMap(node, depth = 0) {
+  if (!node || typeof node !== "object" || depth > 14) return null;
+
+  if (
+    node.CharacterSaveParameterMap &&
+    node.CharacterSaveParameterMap.value &&
+    Array.isArray(node.CharacterSaveParameterMap.value.entries)
+  ) {
+    return node.CharacterSaveParameterMap.value;
+  }
+
+  for (const key of Object.keys(node)) {
+    const prop = node[key];
+    if (!prop || typeof prop !== "object") continue;
+
+    const value = prop.value !== undefined ? prop.value : prop;
+    if (!value || typeof value !== "object") continue;
+
+    const direct = findCharacterSaveParameterMap(value, depth + 1);
+    if (direct) return direct;
+
+    if (Array.isArray(value.items)) {
+      for (const item of value.items) {
+        const found = findCharacterSaveParameterMap(item, depth + 1);
+        if (found) return found;
+      }
+    }
+    if (Array.isArray(value.entries)) {
+      for (const entry of value.entries) {
+        const found =
+          findCharacterSaveParameterMap(entry.value, depth + 1) ||
+          findCharacterSaveParameterMap(entry.key, depth + 1);
+        if (found) return found;
+      }
+    }
+  }
+  return null;
 }
 
 function extractGuidLike(value) {

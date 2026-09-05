@@ -1,193 +1,141 @@
-// fflate est chargé depuis un CDN au format module ES natif — aucune étape
-// de build n'est nécessaire. `unzlibSync` décompresse un flux zlib standard
+// fflate, chargé depuis un CDN au format module ES natif (aucune étape de
+// build nécessaire). `unzlibSync` décompresse un flux zlib standard
 // (équivalent de pako.inflate()) ; `inflateSync` décompresse un flux deflate
 // brut sans en-tête zlib (équivalent de pako.inflate({ raw: true })).
 import { unzlibSync, inflateSync } from "https://esm.sh/fflate@0.8.2";
 
 /**
- * Le fichier .sav de Palworld est enveloppé dans un petit conteneur maison
- * avant le zlib. Deux structures d'en-tête ont été rapportées :
+ * ⚠️ Changement d'approche : on abandonne toute hypothèse sur la position
+ * exacte du magic "PLZ"/"PLM" ou du saveType dans l'en-tête (ces devinettes
+ * d'offsets fixes se sont révélées fragiles d'une version du jeu à l'autre).
  *
- *  Hypothèse A (confirmée empiriquement par un précédent rapport de bug —
- *  c'est cette lecture qui a correctement identifié le magic "PLM") :
- *   offset 0-3   : uncompressedLength (uint32 LE)
- *   offset 4-7   : compressedLength   (uint32 LE)
- *   offset 8-10  : magic "PlZ" / "PLM"
- *   offset 11    : saveType (uint8)
+ * Nouvelle stratégie, indépendante de la structure exacte de l'en-tête :
+ *  1. On scanne les 64 premiers octets à la recherche d'un en-tête zlib
+ *     valide (CMF=0x78 suivi d'un FLG cohérent — voir isValidZlibHeader).
+ *  2. Pour CHAQUE position candidate trouvée, on tente la décompression
+ *     zlib à partir de cet offset, en essayant une passe puis deux passes
+ *     (certaines sauvegardes Palworld sont doublement compressées).
+ *  3. Si aucun en-tête zlib n'est trouvé, on tente un inflate "brut" (sans
+ *     en-tête zlib) sur le buffer tronqué après les 12 premiers octets
+ *     (hypothèse d'un petit conteneur de taille fixe, en dernier recours
+ *     seulement).
+ *  4. Si tout échoue, on vérifie si le fichier n'est simplement pas
+ *     compressé du tout (signature "GVAS" en clair dans les 256 premiers
+ *     octets).
  *
- *  Hypothèse B (signalée plus récemment) :
- *   offset 0-2   : magic "PLZ" / "PLM"
- *   offset 3     : saveType (uint8)
- *   offset 4-7   : uncompressedLength (uint32 LE)
- *   offset 8-11  : compressedLength   (uint32 LE)
- *
- * Dans les deux cas l'en-tête fait 12 octets et le payload commence à
- * l'offset 12 — donc la seule vraie différence fonctionnelle est OÙ lire le
- * magic et le saveType. On essaie les deux hypothèses, dans l'ordre, et on
- * ne retient que celle qui produit effectivement des données commençant par
- * la signature "GVAS" après décompression.
- *
- * Pour le saveType, deux conventions ont aussi été rapportées (0x31=simple/
- * 0x32=double, ou l'inverse) : on essaie les deux sens à chaque fois, plus
- * un repli en "inflate brut" (sans en-tête zlib) si le mode zlib standard
- * échoue.
- *
- * ⚠️ Quel que soit le magic reconnu ("PLZ"/"PLM"), on ne bascule JAMAIS sur
- * une lecture "en clair" du payload sans décompression : des octets encore
- * compressés peuvent accidentellement contenir la séquence "GVAS" par pur
- * hasard statistique, et les lire comme du texte fait planter le parser
- * ("Lecture hors limites"). Le scan en clair reste réservé au cas où AUCUNE
- * des deux hypothèses de magic ne correspond à un format connu.
+ * Chaque candidat n'est retenu QUE si le résultat décompressé commence
+ * effectivement par la signature "GVAS" — c'est cette vérification finale,
+ * bien plus que la position de départ, qui garantit qu'on n'accepte jamais
+ * un faux positif.
  */
 
 const GVAS_SIGNATURE = [0x47, 0x56, 0x41, 0x53]; // "GVAS"
-const KNOWN_HEADER_MAGICS = ["PLZ", "PLM"];
+const ZLIB_SCAN_RANGE = 64;
+const RAW_INFLATE_FALLBACK_OFFSET = 12;
 
 export function decompressSav(arrayBuffer, onLog = () => {}) {
   const bytes = new Uint8Array(arrayBuffer);
-  if (bytes.byteLength < 12) {
+  if (bytes.byteLength < 16) {
     throw new Error("Fichier trop court pour être un .sav Palworld valide.");
   }
 
-  const magicA = readMagicStr(bytes.subarray(8, 11));
-  const magicB = readMagicStr(bytes.subarray(0, 3));
-  const magicRecognizedSomewhere =
-    KNOWN_HEADER_MAGICS.includes(magicA) || KNOWN_HEADER_MAGICS.includes(magicB);
-
-  const hypA = tryHeaderHypothesis(bytes, "A (magic@8, type@11)", magicA, bytes[11], onLog);
-  if (hypA) return hypA;
-
-  const hypB = tryHeaderHypothesis(bytes, "B (magic@0, type@3)", magicB, bytes[3], onLog);
-  if (hypB) return hypB;
-
-  if (magicRecognizedSomewhere) {
-    // Un magic "PLZ"/"PLM" A été reconnu (dans au moins une des deux
-    // hypothèses), mais aucun mode de décompression n'a produit de GVAS
-    // valide. On lève une erreur claire ici — on ne bascule SURTOUT PAS sur
-    // le scan générique ci-dessous, qui accepterait sinon n'importe quelle
-    // séquence "GVAS" trouvée par hasard dans les octets encore compressés
-    // (c'est exactement le bug qu'on corrige : un magic reconnu implique
-    // que le payload est forcément compressé, jamais lu en clair).
-    throw new Error(
-      "Magic \"PLZ\"/\"PLM\" reconnu, mais aucune combinaison de décompression (zlib simple/double, " +
-        "brut simple/double, sur les deux hypothèses d'en-tête) n'a produit de données GVAS valides. " +
-        "Voir les logs ci-dessus pour le détail des tentatives — le format de compression a peut-être " +
-        "encore changé avec une mise à jour du jeu."
-    );
-  }
-
-  onLog("[decompress] Aucun magic \"PLZ\"/\"PLM\" reconnu dans les deux hypothèses — repli générique.");
-  const fallback = fallbackScanForUnknownFormat(bytes, onLog);
-  if (fallback) return fallback;
-
-  throw new Error(
-    "Impossible de décoder ce fichier .sav : ni l'hypothèse d'en-tête historique, ni l'alternative " +
-      "récente, ni le repli générique n'ont produit de données GVAS valides. Le format a peut-être " +
-      "encore changé (voir les logs ci-dessus pour le détail des tentatives)."
+  const zlibOffsets = findZlibHeaderOffsets(bytes, ZLIB_SCAN_RANGE);
+  onLog(
+    zlibOffsets.length
+      ? `[decompress] En-tête(s) zlib candidat(s) trouvé(s) aux offsets : ${zlibOffsets.join(", ")}.`
+      : `[decompress] Aucun en-tête zlib (0x78 ...) trouvé dans les ${ZLIB_SCAN_RANGE} premiers octets.`
   );
-}
 
-function readMagicStr(magicBytes) {
-  return String.fromCharCode(magicBytes[0], magicBytes[1], magicBytes[2]).toUpperCase();
-}
-
-function tryHeaderHypothesis(bytes, label, magicStr, saveType, onLog) {
-  if (!KNOWN_HEADER_MAGICS.includes(magicStr)) return null;
-
-  onLog(`[decompress] Hypothèse ${label} : magic "${magicStr}" reconnu, type déclaré 0x${saveType.toString(16).padStart(2, "0")}.`);
-  const payload = bytes.subarray(12);
-  const candidate = attemptDecompress(payload, saveType, onLog);
-
-  if (candidate && startsWithGvas(candidate)) {
-    onLog(`[decompress] Hypothèse ${label} : succès.`);
-    return candidate;
-  }
-  onLog(`[decompress] Hypothèse ${label} : magic reconnu mais aucun mode de décompression n'a produit de GVAS valide.`);
-  return null;
-}
-
-/**
- * Essaie tous les modes de décompression plausibles pour un payload donné,
- * dans un ordre qui privilégie d'abord la convention explicitement signalée
- * (0x31 = double zlib, 0x32 = simple zlib), avant de retomber sur la
- * convention inverse puis sur un inflate brut (sans en-tête zlib).
- */
-function attemptDecompress(payload, saveType, onLog) {
-  if (saveType === 0x30) {
-    // Non compressé — mais on exige que la signature GVAS soit DÉJÀ là dès
-    // le premier octet (pas de scan plus loin dans le payload).
-    return startsWithGvas(payload) ? payload : null;
+  for (const offset of zlibOffsets) {
+    const candidate = tryZlibAt(bytes, offset, onLog);
+    if (candidate) return candidate;
   }
 
-  const modeOrder =
-    saveType === 0x31
-      ? ["double", "single"]
-      : saveType === 0x32
-      ? ["single", "double"]
-      : ["double", "single"]; // saveType inconnu : on essaie quand même les deux
+  onLog(`[decompress] Repli : inflate brut (sans en-tête zlib) à partir de l'offset ${RAW_INFLATE_FALLBACK_OFFSET}...`);
+  const rawCandidate = tryRawInflateAt(bytes, RAW_INFLATE_FALLBACK_OFFSET, onLog);
+  if (rawCandidate) return rawCandidate;
 
-  for (const mode of modeOrder) {
-    const candidate = decompressWithMode(payload, mode, onLog);
-    if (candidate && startsWithGvas(candidate)) return candidate;
-  }
-
-  // Dernier recours : inflate "brut" (sans en-tête zlib), équivalent de
-  // pako.inflate({ raw: true }), en simple puis double passe.
-  for (const mode of ["rawSingle", "rawDouble"]) {
-    const candidate = decompressWithMode(payload, mode, onLog);
-    if (candidate && startsWithGvas(candidate)) return candidate;
-  }
-
-  return null;
-}
-
-function decompressWithMode(payload, mode, onLog) {
-  try {
-    if (mode === "single") return unzlibSync(payload);
-    if (mode === "double") {
-      const once = unzlibSync(payload);
-      return unzlibSync(once);
-    }
-    if (mode === "rawSingle") return inflateSync(payload);
-    if (mode === "rawDouble") {
-      const once = inflateSync(payload);
-      return inflateSync(once);
-    }
-  } catch (err) {
-    onLog(`[decompress]   mode "${mode}" : échec (${err.message}).`);
-  }
-  return null;
-}
-
-/**
- * Repli générique — utilisé UNIQUEMENT quand ni l'hypothèse A ni B ne
- * reconnaît de magic connu. Dans ce cas seulement, on accepte de scanner :
- * a) une signature GVAS en clair (fichier non compressé, en-tête différent),
- * b) un flux zlib à un offset voisin.
- */
-function fallbackScanForUnknownFormat(bytes, onLog) {
+  onLog("[decompress] Dernier recours : recherche de la signature GVAS en clair (fichier non compressé)...");
   const directOffset = findBytes(bytes, GVAS_SIGNATURE, 0, 256);
   if (directOffset !== -1) {
-    onLog(`[decompress] Signature GVAS trouvée en clair à l'offset ${directOffset} (fichier non compressé).`);
+    onLog(`[decompress] Signature GVAS trouvée en clair à l'offset ${directOffset}.`);
     return bytes.subarray(directOffset);
   }
 
-  const maxScanOffset = Math.min(64, bytes.length - 2);
-  for (let offset = 0; offset <= maxScanOffset; offset++) {
-    if (bytes[offset] !== 0x78) continue; // pas un octet CMF zlib plausible
-    const single = decompressWithMode(bytes.subarray(offset), "single", onLog);
-    if (single && startsWithGvas(single)) {
-      onLog(`[decompress] Flux zlib valide trouvé à l'offset ${offset} (une passe).`);
-      return single;
-    }
-    const double = decompressWithMode(bytes.subarray(offset), "double", onLog);
-    if (double && startsWithGvas(double)) {
-      onLog(`[decompress] Flux zlib valide trouvé à l'offset ${offset} (double passe).`);
-      return double;
-    }
-  }
+  throw new Error(
+    "Impossible de décompresser ce fichier : aucun flux zlib valide, aucun flux deflate brut, et " +
+      "aucune signature GVAS en clair n'ont été trouvés. Voir les logs ci-dessus pour le détail des " +
+      "tentatives."
+  );
+}
 
-  onLog(`[decompress] Aucun flux GVAS trouvé (scan sur les ${maxScanOffset} premiers octets).`);
+/**
+ * Cherche toutes les positions plausibles d'un en-tête zlib dans les
+ * `scanRange` premiers octets. On ne se contente pas de repérer l'octet
+ * 0x78 seul (trop de faux positifs sur du binaire quelconque) : on
+ * applique la règle de validation standard du format zlib
+ * ((CMF*256 + FLG) % 31 === 0), qui couvre à la fois les combinaisons
+ * usuelles (0x78 0x9C, 0x78 0x01, 0x78 0xDA) et les autres FLG valides,
+ * tout en éliminant l'immense majorité des octets 0x78 accidentels.
+ */
+function findZlibHeaderOffsets(bytes, scanRange) {
+  const offsets = [];
+  const limit = Math.min(scanRange, bytes.length - 2);
+  for (let i = 0; i < limit; i++) {
+    if (bytes[i] !== 0x78) continue;
+    if (isValidZlibHeader(bytes[i], bytes[i + 1])) offsets.push(i);
+  }
+  return offsets;
+}
+
+function isValidZlibHeader(cmf, flg) {
+  return (cmf * 256 + flg) % 31 === 0;
+}
+
+function tryZlibAt(bytes, offset, onLog) {
+  const slice = bytes.subarray(offset);
+  try {
+    const once = unzlibSync(slice);
+    if (startsWithGvas(once)) {
+      onLog(`[decompress] Décompression zlib réussie (une passe) à l'offset ${offset}.`);
+      return once;
+    }
+    try {
+      const twice = unzlibSync(once);
+      if (startsWithGvas(twice)) {
+        onLog(`[decompress] Décompression zlib réussie (double passe) à l'offset ${offset}.`);
+        return twice;
+      }
+    } catch {
+      /* pas un double zlib valide depuis cet offset */
+    }
+  } catch (err) {
+    onLog(`[decompress]   offset ${offset} : échec zlib (${err.message}).`);
+  }
+  return null;
+}
+
+function tryRawInflateAt(bytes, offset, onLog) {
+  if (offset >= bytes.length) return null;
+  const slice = bytes.subarray(offset);
+  try {
+    const once = inflateSync(slice);
+    if (startsWithGvas(once)) {
+      onLog(`[decompress] Inflate brut réussi (une passe) à l'offset ${offset}.`);
+      return once;
+    }
+    try {
+      const twice = inflateSync(once);
+      if (startsWithGvas(twice)) {
+        onLog(`[decompress] Inflate brut réussi (double passe) à l'offset ${offset}.`);
+        return twice;
+      }
+    } catch {
+      /* pas un double inflate brut valide depuis cet offset */
+    }
+  } catch (err) {
+    onLog(`[decompress]   inflate brut @${offset} : échec (${err.message}).`);
+  }
   return null;
 }
 

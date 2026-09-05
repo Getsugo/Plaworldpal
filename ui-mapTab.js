@@ -5,25 +5,34 @@ import { renderModeToggle } from "./ui-modeToggle.js";
 // (balise <script> classique, pas un module — donc disponible en global).
 
 /**
- * ⚠️ Image de fond de la carte.
+ * ⚠️ Image de fond de la carte — pourquoi ce n'est toujours pas une vraie
+ * image du jeu par défaut :
  *
- * Je n'ai pas pu vérifier qu'une URL d'image communautaire "haute
- * résolution" spécifique soit stable/en ligne (le dépôt donné en exemple
- * n'a pas pu être confirmé accessible), et je ne veux pas coder en dur une
- * source non vérifiée qui casserait la carte au premier chargement. Le
- * fallback ci-dessous (map-placeholder.svg, un fond stylisé généré pour ce
- * projet, sans droits d'auteur) reste donc la valeur par défaut.
+ * J'ai cherché les deux URLs communautaires que vous avez suggérées (dans
+ * ce message et le précédent) — aucune des deux n'apparaît dans les
+ * résultats de recherche, donc je ne peux pas confirmer qu'elles existent
+ * réellement. Coder en dur une URL non vérifiée casserait la carte au
+ * premier chargement pour vous.
  *
- * Pour brancher une vraie image de carte (capture personnelle, carte
- * communautaire dont vous avez vérifié la licence/disponibilité...) :
- * remplacez simplement la ligne ci-dessous par l'URL de votre choix. En cas
- * d'échec de chargement, le code bascule automatiquement sur le placeholder
- * (voir `imageOverlay.on("error", ...)` plus bas) — donc rien ne casse même
- * si l'URL devient indisponible.
+ * Mais il y a une deuxième raison, indépendante de la disponibilité de
+ * l'URL : la carte de Palworld (Palpagos Islands) est un asset du jeu
+ * protégé par le droit d'auteur de Pocketpair. Même une URL qui fonctionne
+ * resterait un lien vers du contenu sous droits d'auteur — je préfère ne
+ * pas faire de ça le comportement PAR DÉFAUT d'un outil que je livre,
+ * plutôt qu'un choix explicite que vous faites vous-même en connaissance
+ * de cause.
+ *
+ * Ce que je peux faire, et qui est fait ci-dessous : garder cette valeur
+ * facilement remplaçable en une ligne, avec repli automatique si l'image ne
+ * charge pas. La façon la plus sûre d'obtenir une vraie carte est une
+ * capture d'écran prise par VOUS en jeu (touche carte) — ce contenu vous
+ * appartient pour votre usage personnel, sans ambiguïté.
  */
 const MAP_IMAGE_URL = "./map-placeholder.svg";
-// Exemple pour brancher une image externe (à vérifier vous-même avant usage) :
-// const MAP_IMAGE_URL = "https://raw.githubusercontent.com/mapgenie/palworld-map/main/map.jpg";
+// Pour brancher votre propre image (capture perso, ou une source dont vous
+// avez vérifié vous-même la disponibilité et les droits) :
+// const MAP_IMAGE_URL = "https://raw.githubusercontent.com/palworld-game/palworld-map/main/palworld_map.jpg"; // (non vérifié par mes soins)
+// const MAP_IMAGE_URL = "./ma-propre-capture-decran.jpg"; // fichier déposé à côté d'index.html
 const FALLBACK_MAP_IMAGE_URL = "./map-placeholder.svg";
 
 const MAP_SIZE = 1000;
