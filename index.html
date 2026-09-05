@@ -25,6 +25,33 @@
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-thumb { background: #3a5a44; border-radius: 4px; }
   .tab-active { background: #ea9a3e; color: #1a1207; }
+
+  /* Onglet Carte — thème sombre façon Paldex.gg */
+  #tab-map { background: #0b0e14; border-radius: 1rem; padding: 1rem; }
+  #leaflet-map-container { background: #0b0e14; }
+  .leaflet-container { background: #0b0e14 !important; }
+  .leaflet-control-zoom a { background: #121824 !important; color: #e2e8f0 !important; border-color: #1f2937 !important; }
+  .leaflet-control-zoom a:hover { background: #1f2937 !important; }
+
+  /* Popups sombres */
+  .leaflet-popup-content-wrapper { background: #121824; color: #e2e8f0; border-radius: .75rem; }
+  .leaflet-popup-tip { background: #121824; }
+  .leaflet-popup-content { font-family: 'Nunito', sans-serif; font-size: 13px; line-height: 1.5; }
+
+  /* Badge de niveau au centre de chaque zone */
+  .zone-level-badge {
+    background: #121824;
+    border: 2px solid #a855f7;
+    color: #f8fafc;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
 </style>
 </head>
 <body class="text-emerald-50 min-h-screen">
@@ -103,25 +130,25 @@
   <!-- ONGLET MAP -->
   <section id="tab-map" class="tab-panel hidden space-y-4">
     <div id="map-mode-toggle"></div>
-    <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-5">
-      <label class="text-sm text-emerald-200/70">Pal :</label>
+    <div class="bg-[#121824] border border-slate-800 rounded-2xl p-5">
+      <label class="text-sm text-slate-300/80">Pal :</label>
       <div class="flex gap-2 mt-1">
-        <input id="map-search" list="pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-emerald-800 rounded px-3 py-2 text-sm">
-        <button id="map-btn" class="bg-emerald-500 hover:bg-emerald-400 text-[#0c1310] font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
+        <input id="map-search" list="pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-slate-700 rounded px-3 py-2 text-sm">
+        <button id="map-btn" class="bg-purple-500 hover:bg-purple-400 text-white font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
       </div>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-xs text-emerald-200/70">Filtrer :</span>
-      <div class="inline-flex rounded-full bg-black/30 border border-emerald-800 p-1 text-xs">
+      <span class="text-xs text-slate-300/80">Filtrer :</span>
+      <div class="inline-flex rounded-full bg-black/30 border border-slate-700 p-1 text-xs">
         <button data-filter="both" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold bg-amber-400 text-[#1a1207]">🌗 Les deux</button>
-        <button data-filter="day" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-emerald-100/60">🌞 Jour</button>
-        <button data-filter="night" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-emerald-100/60">🌙 Nuit</button>
+        <button data-filter="day" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-slate-300/70">🌞 Jour</button>
+        <button data-filter="night" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-slate-300/70">🌙 Nuit</button>
       </div>
     </div>
 
     <div id="map-status" class="text-sm"></div>
-    <div id="leaflet-map-container" class="h-80 sm:h-[420px] rounded-xl overflow-hidden border border-emerald-900/60 bg-black/30"></div>
+    <div id="leaflet-map-container" class="w-full min-h-[75vh] rounded-xl overflow-hidden border border-slate-800"></div>
   </section>
 
 </main>

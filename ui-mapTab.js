@@ -5,19 +5,27 @@ import { renderModeToggle } from "./ui-modeToggle.js";
 // (balise <script> classique, pas un module — donc disponible en global).
 
 /**
- * ⚠️ Le fond de carte (map-placeholder.svg) est un placeholder stylisé
- * généré pour ce projet, PAS une reproduction de la carte officielle de
- * Palworld (droits d'auteur du jeu). Remplacez ce fichier par votre propre
- * image si vous en avez une sous licence libre, en gardant les mêmes
- * dimensions (carrée) ou en ajustant MAP_SIZE ci-dessous.
+ * ⚠️ Image de fond de la carte.
  *
- * ⚠️ ZONE_COORDINATES ci-dessous place chaque zone à une position
- * APPROXIMATIVE sur ce placeholder (calée sur les régions dessinées dans le
- * SVG) — ce n'est pas un système de coordonnées in-game vérifié. Si vous
- * avez les vraies coordonnées d'apparition, ajustez simplement les valeurs
- * {x, y} correspondantes (0-1000 sur chaque axe).
+ * Je n'ai pas pu vérifier qu'une URL d'image communautaire "haute
+ * résolution" spécifique soit stable/en ligne (le dépôt donné en exemple
+ * n'a pas pu être confirmé accessible), et je ne veux pas coder en dur une
+ * source non vérifiée qui casserait la carte au premier chargement. Le
+ * fallback ci-dessous (map-placeholder.svg, un fond stylisé généré pour ce
+ * projet, sans droits d'auteur) reste donc la valeur par défaut.
+ *
+ * Pour brancher une vraie image de carte (capture personnelle, carte
+ * communautaire dont vous avez vérifié la licence/disponibilité...) :
+ * remplacez simplement la ligne ci-dessous par l'URL de votre choix. En cas
+ * d'échec de chargement, le code bascule automatiquement sur le placeholder
+ * (voir `imageOverlay.on("error", ...)` plus bas) — donc rien ne casse même
+ * si l'URL devient indisponible.
  */
 const MAP_IMAGE_URL = "./map-placeholder.svg";
+// Exemple pour brancher une image externe (à vérifier vous-même avant usage) :
+// const MAP_IMAGE_URL = "https://raw.githubusercontent.com/mapgenie/palworld-map/main/map.jpg";
+const FALLBACK_MAP_IMAGE_URL = "./map-placeholder.svg";
+
 const MAP_SIZE = 1000;
 
 const ZONE_COORDINATES = {
@@ -30,9 +38,6 @@ const ZONE_COORDINATES = {
   "Volcanic Island": { x: 920, y: 380 },
 };
 
-// Zones composites ("A / B" ou "A (précision)") : on rattache au premier
-// mot-clé de zone de base reconnu dans la chaîne, avec un léger décalage
-// déterministe pour ne pas superposer exactement plusieurs marqueurs.
 function getZoneCoordinates(zoneName) {
   if (ZONE_COORDINATES[zoneName]) return ZONE_COORDINATES[zoneName];
 
@@ -42,11 +47,8 @@ function getZoneCoordinates(zoneName) {
       return { x: coords.x + jitter.dx, y: coords.y + jitter.dy };
     }
   }
-
   if (zoneName.includes("Sea Breeze")) return { x: 300, y: 920 };
 
-  // Zone totalement inconnue : position déterministe (toujours la même
-  // pour un même nom) plutôt qu'aléatoire, quelque part sur la carte.
   const jitter = hashJitter(zoneName);
   return { x: 500 + jitter.dx * 4, y: 500 + jitter.dy * 4 };
 }
@@ -57,8 +59,10 @@ function hashJitter(str) {
   return { dx: (hash % 61) - 30, dy: ((hash >> 8) % 61) - 30 };
 }
 
-const DAY_NIGHT_COLORS = { day: "#fbbf24", night: "#818cf8", both: "#34d399" };
+// Palette demandée : orange = jour, bleu = nuit, violet = les deux.
+const DAY_NIGHT_COLORS = { day: "#f97316", night: "#3b82f6", both: "#a855f7" };
 const DAY_NIGHT_LABELS = { day: "🌞 Jour", night: "🌙 Nuit", both: "🌗 Jour et nuit" };
+const ZONE_RADIUS = 70; // rayon des cercles de zone, en unités de la carte (0-1000)
 
 let leafletMap = null;
 let markersLayer = null;
@@ -88,15 +92,12 @@ export function initMapTab() {
   refreshMapModeToggle();
 }
 
-/** Voir le commentaire équivalent dans ui-breedingTab.js — recalcule à chaque activation de l'onglet. */
 export function refreshMapModeToggle() {
   renderModeToggle(document.getElementById("map-mode-toggle"), () => {
     if (lastPal) plotPalOnMap(lastPal);
   });
 
   ensureLeafletMap();
-  // Le conteneur peut avoir été cité alors qu'il était caché (onglet
-  // inactif) : on force Leaflet à recalculer sa taille à chaque activation.
   if (leafletMap) leafletMap.invalidateSize();
 }
 
@@ -111,7 +112,17 @@ function ensureLeafletMap() {
     zoomSnap: 0.25,
     attributionControl: false,
   });
-  L.imageOverlay(MAP_IMAGE_URL, bounds).addTo(leafletMap);
+
+  const overlay = L.imageOverlay(MAP_IMAGE_URL, bounds).addTo(leafletMap);
+  // Si l'image configurée échoue à charger (URL externe indisponible), on
+  // bascule automatiquement sur le placeholder local plutôt que de laisser
+  // une carte vide.
+  overlay.on("error", () => {
+    if (MAP_IMAGE_URL !== FALLBACK_MAP_IMAGE_URL) {
+      overlay.setUrl(FALLBACK_MAP_IMAGE_URL);
+    }
+  });
+
   leafletMap.fitBounds(bounds);
   markersLayer = L.layerGroup().addTo(leafletMap);
 }
@@ -140,44 +151,51 @@ function plotPalOnMap(palName) {
     mapStatus.innerHTML = `<p class="text-amber-300/90">Aucune donnée de spawn pour "${escapeHtml(palName)}" dans la base locale. Complétez data-spawnLocations.js.</p>`;
     return;
   }
-
   if (!spawns.length) {
     mapStatus.innerHTML = `<p class="text-amber-300/90">Aucune apparition connue pour ce filtre (${DAY_NIGHT_LABELS[dayNightFilter]}). Essayez "Les deux".</p>`;
     return;
   }
 
-  let captureHtml = "";
-  if (state.viewMode === "save") {
-    captureHtml = renderCaptureStatus(palName);
-  }
-  mapStatus.innerHTML = captureHtml;
+  mapStatus.innerHTML = state.viewMode === "save" ? renderCaptureStatus(palName) : "";
 
   const bounds = [];
   for (const spawn of spawns) {
     const { x, y } = getZoneCoordinates(spawn.zone);
-    // Conversion : notre repère (x=colonne, y=ligne, origine en haut) vers
-    // celui de Leaflet/CRS.Simple (origine en bas) -> on inverse l'axe Y.
-    const latlng = [MAP_SIZE - y, x];
+    const latlng = [MAP_SIZE - y, x]; // inversion Y : notre repère -> repère Leaflet (origine en bas)
     bounds.push(latlng);
 
     const color = DAY_NIGHT_COLORS[spawn.day_night] || DAY_NIGHT_COLORS.both;
-    const marker = L.circleMarker(latlng, {
-      radius: 10,
+
+    // Zone colorée translucide (cercle plutôt que polygone exact, faute de
+    // vraies coordonnées de contour vérifiées — voir le commentaire sur
+    // ZONE_COORDINATES plus haut).
+    const circle = L.circle(latlng, {
+      radius: ZONE_RADIUS,
       color,
-      fillColor: color,
-      fillOpacity: 0.85,
       weight: 2,
+      opacity: 0.85,
+      fillColor: color,
+      fillOpacity: 0.25,
     });
 
     const popupLines = [
       `<b>${escapeHtml(spawn.zone)}</b>`,
       DAY_NIGHT_LABELS[spawn.day_night] || DAY_NIGHT_LABELS.both,
     ];
-    if (spawn.level) popupLines.push(`Niveau approx. : ${escapeHtml(String(spawn.level))}`);
+    if (spawn.level) popupLines.push(`Niveau approx. : ${escapeHtml(spawn.level)}`);
     if (spawn.note) popupLines.push(`<span style="opacity:.75">${escapeHtml(spawn.note)}</span>`);
+    circle.bindPopup(popupLines.join("<br>"), { className: "palworld-dark-popup" });
+    circle.addTo(markersLayer);
 
-    marker.bindPopup(popupLines.join("<br>"));
-    marker.addTo(markersLayer);
+    // Badge de niveau au centre de la zone (ou nom de zone si pas de niveau
+    // connu — on n'invente pas de chiffre quand la donnée est absente).
+    const badgeText = spawn.level ? `Lv ${spawn.level}` : spawn.zone;
+    const badgeIcon = L.divIcon({
+      className: "",
+      html: `<div class="zone-level-badge" style="border-color:${color}">${escapeHtml(badgeText)}</div>`,
+      iconSize: null,
+    });
+    L.marker(latlng, { icon: badgeIcon, interactive: false }).addTo(markersLayer);
   }
 
   if (bounds.length === 1) {
@@ -191,13 +209,10 @@ function renderCaptureStatus(palName) {
   if (!state.pals.length) {
     return `<p class="text-amber-300/90 mb-2">Importez une sauvegarde pour voir votre statut de capture, ou basculez en mode "Tous les Pals (Global)".</p>`;
   }
-
   const owned = state.currentPlayerUid
     ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
     : state.pals;
-
   const count = owned.filter(p => idToName[p.species_id] === palName).length;
-
   return count > 0
     ? `<div class="bg-emerald-900/40 border border-emerald-600/60 rounded-lg p-3 mb-2 text-sm">✅ Déjà capturé — vous en possédez ${count}.</div>`
     : `<div class="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 mb-2 text-sm">❌ Pas encore capturé dans votre sauvegarde.</div>`;
