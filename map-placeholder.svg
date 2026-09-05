@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+  <!-- Fond de carte STYLISÉ / PLACEHOLDER — pas une reproduction de la carte
+       officielle de Palworld (droits d'auteur). Remplacez ce fichier par
+       votre propre image (capture personnelle, carte communautaire sous
+       licence libre...) en gardant le même nom "map-placeholder.svg", ou
+       changez MAP_IMAGE_URL dans ui-mapTab.js. -->
+  <rect width="1000" height="1000" fill="#0d3b52"/>
+
+  <!-- Astral Mountains (nord) -->
+  <ellipse cx="500" cy="300" rx="220" ry="150" fill="#4a5568"/>
+  <text x="500" y="300" text-anchor="middle" fill="#e2e8f0" font-size="22" font-family="sans-serif">Astral Mountains</text>
+
+  <!-- Iceberg Wasteland (extrême nord) -->
+  <ellipse cx="500" cy="100" rx="160" ry="90" fill="#cbd5e1"/>
+  <text x="500" y="100" text-anchor="middle" fill="#0d3b52" font-size="20" font-family="sans-serif">Iceberg Wasteland</text>
+
+  <!-- Windswept Hills (centre — zone de départ) -->
+  <ellipse cx="500" cy="600" rx="180" ry="130" fill="#4d7c3a"/>
+  <text x="500" y="600" text-anchor="middle" fill="#f0fdf4" font-size="22" font-family="sans-serif">Windswept Hills</text>
+
+  <!-- Verdant Brook (ouest) -->
+  <ellipse cx="250" cy="550" rx="150" ry="120" fill="#2f6b3a"/>
+  <text x="250" y="550" text-anchor="middle" fill="#f0fdf4" font-size="20" font-family="sans-serif">Verdant Brook</text>
+
+  <!-- Deep Sand Dunes (est) -->
+  <ellipse cx="760" cy="580" rx="160" ry="130" fill="#c9a24b"/>
+  <text x="760" y="580" text-anchor="middle" fill="#3f2e0a" font-size="20" font-family="sans-serif">Deep Sand Dunes</text>
+
+  <!-- Mount Obsidian (sud-est) -->
+  <ellipse cx="700" cy="800" rx="140" ry="110" fill="#8a3a2a"/>
+  <text x="700" y="800" text-anchor="middle" fill="#fef2f2" font-size="20" font-family="sans-serif">Mount Obsidian</text>
+
+  <!-- Volcanic Island (île à l'est) -->
+  <ellipse cx="920" cy="380" rx="80" ry="70" fill="#a13a1f"/>
+  <text x="920" y="380" text-anchor="middle" fill="#fef2f2" font-size="16" font-family="sans-serif">Volcanic Island</text>
+
+  <!-- Sea Breeze Archipelago (îles au sud) -->
+  <ellipse cx="300" cy="920" rx="110" ry="60" fill="#2b6ea3"/>
+  <text x="300" y="920" text-anchor="middle" fill="#f0f9ff" font-size="16" font-family="sans-serif">Sea Breeze Archipelago</text>
+
+  <text x="500" y="980" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">Carte stylisée non officielle — remplacez map-placeholder.svg par votre propre image</text>
+</svg>

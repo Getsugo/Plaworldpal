@@ -13,6 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
+<!-- Leaflet.js pour la carte interactive (onglet Carte) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
   body { font-family: 'Nunito', sans-serif; background: radial-gradient(circle at top, #16241c 0%, #0c1310 70%); }
   .font-title { font-family: 'Baloo 2', sans-serif; }
@@ -106,7 +110,18 @@
         <button id="map-btn" class="bg-emerald-500 hover:bg-emerald-400 text-[#0c1310] font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
       </div>
     </div>
-    <div id="map-result" class="space-y-2"></div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs text-emerald-200/70">Filtrer :</span>
+      <div class="inline-flex rounded-full bg-black/30 border border-emerald-800 p-1 text-xs">
+        <button data-filter="both" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold bg-amber-400 text-[#1a1207]">🌗 Les deux</button>
+        <button data-filter="day" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-emerald-100/60">🌞 Jour</button>
+        <button data-filter="night" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-emerald-100/60">🌙 Nuit</button>
+      </div>
+    </div>
+
+    <div id="map-status" class="text-sm"></div>
+    <div id="leaflet-map-container" class="h-80 sm:h-[420px] rounded-xl overflow-hidden border border-emerald-900/60 bg-black/30"></div>
   </section>
 
 </main>
