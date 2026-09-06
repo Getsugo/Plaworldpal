@@ -1,53 +1,59 @@
 import { state, idToName, SPAWN_LOCATIONS } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
 
-// `L` est fourni par le script Leaflet chargé via CDN dans index.html
-// (balise <script> classique, pas un module — donc disponible en global).
+// `L` est fourni par le script Leaflet chargé via CDN dans index.html.
 
 /**
- * ⚠️ Image de fond de la carte — pourquoi ce n'est toujours pas une vraie
- * image du jeu par défaut :
- *
- * J'ai cherché les deux URLs communautaires que vous avez suggérées (dans
- * ce message et le précédent) — aucune des deux n'apparaît dans les
- * résultats de recherche, donc je ne peux pas confirmer qu'elles existent
- * réellement. Coder en dur une URL non vérifiée casserait la carte au
- * premier chargement pour vous.
- *
- * Mais il y a une deuxième raison, indépendante de la disponibilité de
- * l'URL : la carte de Palworld (Palpagos Islands) est un asset du jeu
- * protégé par le droit d'auteur de Pocketpair. Même une URL qui fonctionne
- * resterait un lien vers du contenu sous droits d'auteur — je préfère ne
- * pas faire de ça le comportement PAR DÉFAUT d'un outil que je livre,
- * plutôt qu'un choix explicite que vous faites vous-même en connaissance
- * de cause.
- *
- * Ce que je peux faire, et qui est fait ci-dessous : garder cette valeur
- * facilement remplaçable en une ligne, avec repli automatique si l'image ne
- * charge pas. La façon la plus sûre d'obtenir une vraie carte est une
- * capture d'écran prise par VOUS en jeu (touche carte) — ce contenu vous
- * appartient pour votre usage personnel, sans ambiguïté.
+ * ⚠️ Note sur les chemins d'image : la demande initiale utilisait
+ * "./assets/map.webp" / "./assets/worldtree.webp" (sous-dossier "assets/").
+ * Ce projet est volontairement 100% à plat (aucun sous-dossier, décision
+ * prise plus tôt pour faciliter l'upload/édition depuis un téléphone) — les
+ * deux images sont donc attendues directement à la racine, sous les noms
+ * ci-dessous. Si vous préférez un sous-dossier "assets/", changez juste les
+ * deux URLs dans MAPS.
  */
-const MAP_IMAGE_URL = "./map-placeholder.svg";
-// Pour brancher votre propre image (capture perso, ou une source dont vous
-// avez vérifié vous-même la disponibilité et les droits) :
-// const MAP_IMAGE_URL = "https://raw.githubusercontent.com/palworld-game/palworld-map/main/palworld_map.jpg"; // (non vérifié par mes soins)
-// const MAP_IMAGE_URL = "./ma-propre-capture-decran.jpg"; // fichier déposé à côté d'index.html
+const MAPS = {
+  palpagos: {
+    id: "palpagos",
+    label: "🏝️ Îles Palpagos",
+    url: "./map-palpagos.webp",
+    width: 4096,
+    height: 4096,
+    hasZoneData: true,
+  },
+  worldtree: {
+    id: "worldtree",
+    label: "🌳 Arbre Monde",
+    url: "./map-worldtree.webp",
+    width: 4096,
+    height: 4096,
+    hasZoneData: false, // voir commentaire plus bas : aucune donnée de zone pour cette carte pour l'instant
+  },
+};
 const FALLBACK_MAP_IMAGE_URL = "./map-placeholder.svg";
 
-const MAP_SIZE = 1000;
-
+/**
+ * ⚠️ Calibration des zones sur la VRAIE image Palpagos — état honnête :
+ * en regardant l'image que vous avez fournie, j'ai pu repérer avec une
+ * confiance raisonnable quelques masses continentales par leur couleur
+ * (neige = blanc, lave = rouge/noir, grande zone verte = prairie/forêt).
+ * Les autres restent des positions approximatives non calibrées (marquées
+ * ci-dessous). Coordonnées en repère NORMALISÉ 0-1000 (indépendant de la
+ * résolution réelle de l'image, remises à l'échelle au moment de l'affichage
+ * — voir getScaledZoneCoordinates). Ajustez directement les valeurs ici si
+ * elles ne correspondent pas à ce que vous voyez en jeu.
+ */
 const ZONE_COORDINATES = {
-  "Windswept Hills": { x: 500, y: 600 },
-  "Verdant Brook": { x: 250, y: 550 },
-  "Deep Sand Dunes": { x: 760, y: 580 },
-  "Mount Obsidian": { x: 700, y: 800 },
-  "Astral Mountains": { x: 500, y: 300 },
-  "Iceberg Wasteland": { x: 500, y: 100 },
-  "Volcanic Island": { x: 920, y: 380 },
+  "Windswept Hills": { x: 600, y: 500 }, // repéré visuellement : grande masse verte centrale
+  "Verdant Brook": { x: 500, y: 480 }, // repéré visuellement : partie ouest de la masse verte centrale
+  "Iceberg Wasteland": { x: 560, y: 190 }, // repéré visuellement : masse blanche/neige en haut
+  "Mount Obsidian": { x: 370, y: 550 }, // repéré visuellement : île sombre avec marques rouges (lave)
+  "Deep Sand Dunes": { x: 780, y: 220 }, // NON CALIBRÉ — position approximative à vérifier
+  "Astral Mountains": { x: 700, y: 300 }, // NON CALIBRÉ — position approximative à vérifier
+  "Volcanic Island": { x: 900, y: 600 }, // NON CALIBRÉ — position approximative à vérifier
 };
 
-function getZoneCoordinates(zoneName) {
+function getZoneCoordinatesNormalized(zoneName) {
   if (ZONE_COORDINATES[zoneName]) return ZONE_COORDINATES[zoneName];
 
   for (const [baseName, coords] of Object.entries(ZONE_COORDINATES)) {
@@ -56,10 +62,16 @@ function getZoneCoordinates(zoneName) {
       return { x: coords.x + jitter.dx, y: coords.y + jitter.dy };
     }
   }
-  if (zoneName.includes("Sea Breeze")) return { x: 300, y: 920 };
+  if (zoneName.includes("Sea Breeze")) return { x: 300, y: 850 }; // NON CALIBRÉ
 
   const jitter = hashJitter(zoneName);
   return { x: 500 + jitter.dx * 4, y: 500 + jitter.dy * 4 };
+}
+
+/** Remet à l'échelle les coordonnées normalisées (0-1000) sur les vraies dimensions de la carte active. */
+function getScaledZoneCoordinates(zoneName, mapCfg) {
+  const norm = getZoneCoordinatesNormalized(zoneName);
+  return { x: (norm.x / 1000) * mapCfg.width, y: (norm.y / 1000) * mapCfg.height };
 }
 
 function hashJitter(str) {
@@ -68,14 +80,14 @@ function hashJitter(str) {
   return { dx: (hash % 61) - 30, dy: ((hash >> 8) % 61) - 30 };
 }
 
-// Palette demandée : orange = jour, bleu = nuit, violet = les deux.
 const DAY_NIGHT_COLORS = { day: "#f97316", night: "#3b82f6", both: "#a855f7" };
 const DAY_NIGHT_LABELS = { day: "🌞 Jour", night: "🌙 Nuit", both: "🌗 Jour et nuit" };
-const ZONE_RADIUS = 70; // rayon des cercles de zone, en unités de la carte (0-1000)
+const ZONE_RADIUS_NORMALIZED = 70; // rayon en unités normalisées (0-1000), remis à l'échelle comme les coordonnées
 
 let leafletMap = null;
 let markersLayer = null;
-let dayNightFilter = "both"; // "both" = pas de filtre, on montre tout
+let dayNightFilter = "both";
+let currentMapId = "palpagos";
 let lastPal = "";
 
 export function initMapTab() {
@@ -88,15 +100,15 @@ export function initMapTab() {
   document.querySelectorAll(".daynight-filter-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       dayNightFilter = btn.dataset.filter;
-      document.querySelectorAll(".daynight-filter-btn").forEach(b => {
-        const active = b.dataset.filter === dayNightFilter;
-        b.classList.toggle("bg-amber-400", active);
-        b.classList.toggle("text-[#1a1207]", active);
-        b.classList.toggle("text-emerald-100/60", !active);
-      });
+      syncFilterButtonStyles();
       if (lastPal) plotPalOnMap(lastPal);
     });
   });
+
+  document.querySelectorAll(".map-switch-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchMap(btn.dataset.mapId));
+  });
+  syncMapSwitchButtonStyles();
 
   refreshMapModeToggle();
 }
@@ -110,26 +122,65 @@ export function refreshMapModeToggle() {
   if (leafletMap) leafletMap.invalidateSize();
 }
 
+function switchMap(mapId) {
+  if (!MAPS[mapId] || mapId === currentMapId) return;
+  currentMapId = mapId;
+  syncMapSwitchButtonStyles();
+
+  // On reconstruit la carte Leaflet à neuf : plus simple et plus fiable que
+  // de tenter de faire muter les bounds/CRS d'une instance déjà vivante,
+  // surtout si les deux cartes ont des dimensions différentes.
+  if (leafletMap) {
+    leafletMap.remove();
+    leafletMap = null;
+    markersLayer = null;
+  }
+  ensureLeafletMap();
+
+  if (lastPal) {
+    plotPalOnMap(lastPal);
+  } else if (!MAPS[currentMapId].hasZoneData) {
+    document.getElementById("map-status").innerHTML =
+      `<p class="text-slate-400/80 text-sm">Pas encore de données de zones pour "${MAPS[currentMapId].label}".</p>`;
+  } else {
+    document.getElementById("map-status").innerHTML = "";
+  }
+}
+
+function syncMapSwitchButtonStyles() {
+  document.querySelectorAll(".map-switch-btn").forEach(btn => {
+    const active = btn.dataset.mapId === currentMapId;
+    btn.classList.toggle("bg-amber-400", active);
+    btn.classList.toggle("text-[#1a1207]", active);
+    btn.classList.toggle("text-slate-300/70", !active);
+  });
+}
+
+function syncFilterButtonStyles() {
+  document.querySelectorAll(".daynight-filter-btn").forEach(b => {
+    const active = b.dataset.filter === dayNightFilter;
+    b.classList.toggle("bg-amber-400", active);
+    b.classList.toggle("text-[#1a1207]", active);
+    b.classList.toggle("text-slate-300/70", !active);
+  });
+}
+
 function ensureLeafletMap() {
   if (leafletMap || typeof L === "undefined") return;
 
-  const bounds = [[0, 0], [MAP_SIZE, MAP_SIZE]];
+  const cfg = MAPS[currentMapId];
+  const bounds = [[0, 0], [cfg.height, cfg.width]];
   leafletMap = L.map("leaflet-map-container", {
     crs: L.CRS.Simple,
-    minZoom: -2,
-    maxZoom: 2,
+    minZoom: -3,
+    maxZoom: 3,
     zoomSnap: 0.25,
     attributionControl: false,
   });
 
-  const overlay = L.imageOverlay(MAP_IMAGE_URL, bounds).addTo(leafletMap);
-  // Si l'image configurée échoue à charger (URL externe indisponible), on
-  // bascule automatiquement sur le placeholder local plutôt que de laisser
-  // une carte vide.
+  const overlay = L.imageOverlay(cfg.url, bounds).addTo(leafletMap);
   overlay.on("error", () => {
-    if (MAP_IMAGE_URL !== FALLBACK_MAP_IMAGE_URL) {
-      overlay.setUrl(FALLBACK_MAP_IMAGE_URL);
-    }
+    if (cfg.url !== FALLBACK_MAP_IMAGE_URL) overlay.setUrl(FALLBACK_MAP_IMAGE_URL);
   });
 
   leafletMap.fitBounds(bounds);
@@ -152,6 +203,12 @@ function plotPalOnMap(palName) {
   }
 
   markersLayer.clearLayers();
+  const cfg = MAPS[currentMapId];
+
+  if (!cfg.hasZoneData) {
+    mapStatus.innerHTML = `<p class="text-slate-400/80 text-sm">Pas encore de données de zones pour "${cfg.label}" — basculez sur "Îles Palpagos" pour voir les zones connues de ${escapeHtml(palName)}.</p>`;
+    return;
+  }
 
   const allSpawns = SPAWN_LOCATIONS[palName] || [];
   const spawns = allSpawns.filter(s => dayNightFilter === "both" || s.day_night === dayNightFilter || s.day_night === "both");
@@ -168,18 +225,17 @@ function plotPalOnMap(palName) {
   mapStatus.innerHTML = state.viewMode === "save" ? renderCaptureStatus(palName) : "";
 
   const bounds = [];
+  const radiusPx = (ZONE_RADIUS_NORMALIZED / 1000) * cfg.width;
+
   for (const spawn of spawns) {
-    const { x, y } = getZoneCoordinates(spawn.zone);
-    const latlng = [MAP_SIZE - y, x]; // inversion Y : notre repère -> repère Leaflet (origine en bas)
+    const { x, y } = getScaledZoneCoordinates(spawn.zone, cfg);
+    const latlng = [cfg.height - y, x]; // inversion Y : repère image -> repère Leaflet (origine en bas)
     bounds.push(latlng);
 
     const color = DAY_NIGHT_COLORS[spawn.day_night] || DAY_NIGHT_COLORS.both;
 
-    // Zone colorée translucide (cercle plutôt que polygone exact, faute de
-    // vraies coordonnées de contour vérifiées — voir le commentaire sur
-    // ZONE_COORDINATES plus haut).
     const circle = L.circle(latlng, {
-      radius: ZONE_RADIUS,
+      radius: radiusPx,
       color,
       weight: 2,
       opacity: 0.85,
@@ -196,8 +252,6 @@ function plotPalOnMap(palName) {
     circle.bindPopup(popupLines.join("<br>"), { className: "palworld-dark-popup" });
     circle.addTo(markersLayer);
 
-    // Badge de niveau au centre de la zone (ou nom de zone si pas de niveau
-    // connu — on n'invente pas de chiffre quand la donnée est absente).
     const badgeText = spawn.level ? `Lv ${spawn.level}` : spawn.zone;
     const badgeIcon = L.divIcon({
       className: "",
