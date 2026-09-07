@@ -1,12 +1,9 @@
 // Assistant Élevage Palworld — 100% vanilla JS (ES modules natifs), zéro build.
 import { parseSaveFile } from "./saveParser.js";
-import { state, persist, resetState, allPalNames } from "./state.js";
+import { state, persist, resetState } from "./state.js";
 import { initCollectionTab, renderCollection } from "./ui-collectionTab.js";
 import { initBreedingTab, refreshBreedingModeToggle } from "./ui-breedingTab.js";
 import { initMapTab, refreshMapModeToggle } from "./ui-mapTab.js";
-
-document.getElementById("pal-list").innerHTML =
-  allPalNames.map(n => `<option value="${n}">`).join("");
 
 // --- Navigation par onglets ------------------------------------------------------
 const tabButtons = document.querySelectorAll(".tab-btn");

@@ -2,7 +2,7 @@
 // de l'app pour forcer la mise à jour du cache chez les utilisateurs déjà
 // installés (discipline anti-cache-bust — sans ça, ils resteraient bloqués
 // sur une ancienne version indéfiniment).
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v8";
 const CACHE_NAME = `palworld-breeding-${CACHE_VERSION}`;
 
 // Chemins relatifs à la racine du service worker (fonctionne aussi bien à
@@ -32,6 +32,7 @@ const APP_SHELL = [
   "./ui-breedingTab.js",
   "./ui-mapTab.js",
   "./ui-modeToggle.js",
+  "./ui-autocomplete.js",
 ];
 
 self.addEventListener("install", (event) => {

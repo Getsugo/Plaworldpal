@@ -1,5 +1,6 @@
-import { state, calculator, idToName, SPAWN_LOCATIONS } from "./state.js";
+import { state, calculator, idToName, SPAWN_LOCATIONS, allPalNames } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
+import { attachAutocomplete } from "./ui-autocomplete.js";
 
 let lastTarget = "";
 
@@ -9,6 +10,13 @@ export function initBreedingTab() {
 
   computeBtn.addEventListener("click", compute);
   targetSearch.addEventListener("keydown", e => { if (e.key === "Enter") compute(); });
+
+  attachAutocomplete({
+    inputEl: targetSearch,
+    dropdownEl: document.getElementById("target-search-dropdown"),
+    getOptions: () => allPalNames,
+    onSelect: () => compute(),
+  });
 
   refreshBreedingModeToggle();
 }

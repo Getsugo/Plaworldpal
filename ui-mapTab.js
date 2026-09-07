@@ -1,6 +1,7 @@
 import { state, idToName, SPAWN_LOCATIONS } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
 import { realSpawnPoints } from "./data-realSpawnPoints.js";
+import { attachAutocomplete } from "./ui-autocomplete.js";
 
 // `L` est fourni par le script Leaflet chargé via CDN dans index.html.
 
@@ -75,7 +76,12 @@ export function initMapTab() {
   mapBtn.addEventListener("click", () => searchAndPlot(mapSearch.value.trim()));
   mapSearch.addEventListener("keydown", e => { if (e.key === "Enter") searchAndPlot(mapSearch.value.trim()); });
 
-  populateMapPalDatalist();
+  attachAutocomplete({
+    inputEl: mapSearch,
+    dropdownEl: document.getElementById("map-search-dropdown"),
+    getOptions: () => Object.keys(realSpawnPoints).sort(),
+    onSelect: value => searchAndPlot(value),
+  });
 
   document.querySelectorAll(".map-switch-btn").forEach(btn => {
     btn.addEventListener("click", () => switchMap(btn.dataset.mapId));
@@ -83,17 +89,6 @@ export function initMapTab() {
   syncMapSwitchButtonStyles();
 
   refreshMapModeToggle();
-}
-
-/** Datalist dédiée à la recherche sur la carte : les 262 Pals couverts par
- * Pal Atlas, pas seulement les 47 de notre base d'élevage. */
-function populateMapPalDatalist() {
-  const datalist = document.getElementById("map-pal-list");
-  if (!datalist) return;
-  datalist.innerHTML = Object.keys(realSpawnPoints)
-    .sort()
-    .map(n => `<option value="${n}">`)
-    .join("");
 }
 
 export function refreshMapModeToggle() {

@@ -52,6 +52,39 @@
     transform: translate(-50%, -50%);
     box-shadow: 0 2px 8px rgba(0,0,0,.5);
   }
+
+  /* Menu d'autocomplétion personnalisé (remplace <datalist>, non stylable) */
+  .autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 40;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #121824;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    box-shadow: 0 12px 28px rgba(0,0,0,.55);
+    padding: 4px;
+  }
+  .autocomplete-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #e2e8f0;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .autocomplete-item:hover,
+  .autocomplete-item-active {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fbbf24;
+  }
 </style>
 </head>
 <body class="text-emerald-50 min-h-screen">
@@ -120,8 +153,10 @@
     <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-5">
       <label class="text-sm text-emerald-200/70">Pal recherché :</label>
       <div class="flex gap-2 mt-1">
-        <input id="target-search" list="pal-list" type="text" placeholder="Ex: Anubis, Jetragon..." class="flex-1 bg-black/30 border border-emerald-800 rounded px-3 py-2 text-sm">
-        <datalist id="pal-list"></datalist>
+        <div class="relative flex-1">
+          <input id="target-search" type="text" autocomplete="off" placeholder="Ex: Anubis, Jetragon..." class="w-full bg-black/30 border border-emerald-800 rounded px-3 py-2 text-sm">
+          <div id="target-search-dropdown" class="autocomplete-dropdown hidden"></div>
+        </div>
         <button id="compute-btn" class="bg-amber-400 hover:bg-amber-300 text-[#1a1207] font-bold px-4 py-2 rounded-lg text-sm">Calculer</button>
       </div>
     </div>
@@ -143,8 +178,10 @@
     <div class="bg-[#121824] border border-slate-800 rounded-2xl p-5">
       <label class="text-sm text-slate-300/80">Pal :</label>
       <div class="flex gap-2 mt-1">
-        <input id="map-search" list="map-pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-slate-700 rounded px-3 py-2 text-sm">
-        <datalist id="map-pal-list"></datalist>
+        <div class="relative flex-1">
+          <input id="map-search" type="text" autocomplete="off" placeholder="Ex: Penking..." class="w-full bg-black/30 border border-slate-700 rounded px-3 py-2 text-sm">
+          <div id="map-search-dropdown" class="autocomplete-dropdown hidden"></div>
+        </div>
         <button id="map-btn" class="bg-purple-500 hover:bg-purple-400 text-white font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
       </div>
       <p class="text-xs text-slate-400/60 mt-2">262 Pals couverts (source Pal Atlas) — pas seulement les 47 de la base d'élevage.</p>
