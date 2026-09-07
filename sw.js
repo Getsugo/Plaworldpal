@@ -2,7 +2,7 @@
 // de l'app pour forcer la mise à jour du cache chez les utilisateurs déjà
 // installés (discipline anti-cache-bust — sans ça, ils resteraient bloqués
 // sur une ancienne version indéfiniment).
-const CACHE_VERSION = "v6";
+const CACHE_VERSION = "v7";
 const CACHE_NAME = `palworld-breeding-${CACHE_VERSION}`;
 
 // Chemins relatifs à la racine du service worker (fonctionne aussi bien à
@@ -27,6 +27,7 @@ const APP_SHELL = [
   "./data-palsDatabase.js",
   "./data-specialCombos.js",
   "./data-spawnLocations.js",
+  "./data-realSpawnPoints.js",
   "./ui-collectionTab.js",
   "./ui-breedingTab.js",
   "./ui-mapTab.js",

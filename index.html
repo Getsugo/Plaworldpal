@@ -143,18 +143,11 @@
     <div class="bg-[#121824] border border-slate-800 rounded-2xl p-5">
       <label class="text-sm text-slate-300/80">Pal :</label>
       <div class="flex gap-2 mt-1">
-        <input id="map-search" list="pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-slate-700 rounded px-3 py-2 text-sm">
+        <input id="map-search" list="map-pal-list" type="text" placeholder="Ex: Penking..." class="flex-1 bg-black/30 border border-slate-700 rounded px-3 py-2 text-sm">
+        <datalist id="map-pal-list"></datalist>
         <button id="map-btn" class="bg-purple-500 hover:bg-purple-400 text-white font-bold px-4 py-2 rounded-lg text-sm">Chercher</button>
       </div>
-    </div>
-
-    <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-xs text-slate-300/80">Filtrer :</span>
-      <div class="inline-flex rounded-full bg-black/30 border border-slate-700 p-1 text-xs">
-        <button data-filter="both" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold bg-amber-400 text-[#1a1207]">🌗 Les deux</button>
-        <button data-filter="day" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-slate-300/70">🌞 Jour</button>
-        <button data-filter="night" class="daynight-filter-btn px-3 py-1 rounded-full font-semibold text-slate-300/70">🌙 Nuit</button>
-      </div>
+      <p class="text-xs text-slate-400/60 mt-2">262 Pals couverts (source Pal Atlas) — pas seulement les 47 de la base d'élevage.</p>
     </div>
 
     <div id="map-status" class="text-sm"></div>
