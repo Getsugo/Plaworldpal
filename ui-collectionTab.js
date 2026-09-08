@@ -1,20 +1,51 @@
-import { state, idToName } from "./state.js";
+import { state, idToName, allPalNames } from "./state.js";
+import { renderModeToggle } from "./ui-modeToggle.js";
 
-let lastCollection = [];
+let lastOwnedCollection = [];
+let currentFilterText = "";
 
 export function initCollectionTab() {
   const filterInput = document.getElementById("collection-filter");
-  filterInput.addEventListener("input", () => renderFiltered(filterInput.value));
+  filterInput.addEventListener("input", () => {
+    currentFilterText = filterInput.value;
+    renderCurrentMode();
+  });
+
+  refreshCollectionModeToggle();
 }
 
+/** Voir le commentaire équivalent dans ui-breedingTab.js / ui-mapTab.js —
+ * recalcule à chaque activation de l'onglet (garantit la règle "pas de
+ * sauvegarde -> mode Global forcé"). */
+export function refreshCollectionModeToggle() {
+  renderModeToggle(document.getElementById("collection-mode-toggle"), () => {
+    renderCurrentMode();
+  });
+}
+
+// Conservé pour compatibilité avec app.js (appelé après import/reset et à
+// l'activation de l'onglet) : re-rend le commutateur ET le contenu.
 export function renderCollection() {
-  const grid = document.getElementById("collection-grid");
+  refreshCollectionModeToggle();
+}
+
+function renderCurrentMode() {
   const warningBox = document.getElementById("collection-warning");
+  if (state.viewMode === "save") {
+    renderOwnedMode(warningBox);
+  } else {
+    renderPaldexMode(warningBox);
+  }
+}
+
+// --- Mode "Mes Pals (Sauvegarde)" : instances réellement possédées ------------
+function renderOwnedMode(warningBox) {
+  const grid = document.getElementById("collection-grid");
 
   if (!state.pals.length) {
-    grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Importez d'abord une sauvegarde (onglet Import).</p>`;
+    grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Importez d'abord une sauvegarde (onglet Import), ou consultez le Paldex complet en mode "Tous les Pals".</p>`;
     warningBox.textContent = "";
-    lastCollection = [];
+    lastOwnedCollection = [];
     return;
   }
 
@@ -23,7 +54,7 @@ export function renderCollection() {
     : state.pals;
 
   const unresolved = new Set();
-  lastCollection = scoped.map(p => {
+  lastOwnedCollection = scoped.map(p => {
     const name = idToName[p.species_id];
     if (!name) unresolved.add(p.species_id);
     return { ...p, species_name: name || `[Inconnu: ${p.species_id}]` };
@@ -33,13 +64,13 @@ export function renderCollection() {
     ? `${unresolved.size} espèce(s) non reconnue(s) : ${[...unresolved].join(", ")}. Ajoutez leur CharacterID dans data-palsDatabase.js.`
     : "";
 
-  renderFiltered(document.getElementById("collection-filter").value || "");
+  renderOwnedFiltered();
 }
 
-function renderFiltered(filterText) {
+function renderOwnedFiltered() {
   const grid = document.getElementById("collection-grid");
-  const filtered = lastCollection.filter(p =>
-    p.species_name.toLowerCase().includes(filterText.toLowerCase())
+  const filtered = lastOwnedCollection.filter(p =>
+    p.species_name.toLowerCase().includes(currentFilterText.toLowerCase())
   );
 
   if (!filtered.length) {
@@ -50,7 +81,7 @@ function renderFiltered(filterText) {
   grid.innerHTML = filtered.map(p => `
     <div class="pal-card bg-[#14201a] border border-emerald-900/60 rounded-xl p-3">
       <div class="flex items-center justify-between">
-        <span class="font-bold text-amber-200 text-sm">${p.species_name}</span>
+        <span class="font-bold text-amber-200 text-sm">${escapeHtml(p.species_name)}</span>
         <span class="text-xs ${p.gender === "Female" ? "text-pink-300" : "text-sky-300"}">${p.gender === "Female" ? "♀" : p.gender === "Male" ? "♂" : "?"}</span>
       </div>
       ${p.nickname ? `<div class="text-xs text-emerald-100/60 italic">"${escapeHtml(p.nickname)}"</div>` : ""}
@@ -58,6 +89,51 @@ function renderFiltered(filterText) {
       ${p.passives && p.passives.length ? `<div class="mt-1 flex flex-wrap gap-1">${p.passives.map(pa => `<span class="text-[10px] bg-emerald-900/70 px-1.5 py-0.5 rounded">${escapeHtml(pa)}</span>`).join("")}</div>` : ""}
     </div>
   `).join("");
+}
+
+// --- Mode "Tous les Pals (Global)" : Paldex complet, capturé ou non -----------
+function renderPaldexMode(warningBox) {
+  warningBox.textContent =
+    `Paldex de la base d'élevage (${allPalNames.length} Pals) — pas encore l'intégralité des ~150 Pals ` +
+    `du jeu (seuls ceux avec un CharacterID connu peuvent être détectés comme "capturés").`;
+
+  const scoped = state.currentPlayerUid
+    ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
+    : state.pals;
+
+  const ownedCountByName = {};
+  for (const p of scoped) {
+    const name = idToName[p.species_id];
+    if (!name) continue;
+    ownedCountByName[name] = (ownedCountByName[name] || 0) + 1;
+  }
+
+  const filteredNames = allPalNames
+    .filter(n => n.toLowerCase().includes(currentFilterText.toLowerCase()))
+    .sort((a, b) => a.localeCompare(b));
+
+  const grid = document.getElementById("collection-grid");
+  if (!filteredNames.length) {
+    grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Aucun Pal trouvé.</p>`;
+    return;
+  }
+
+  grid.innerHTML = filteredNames.map(name => {
+    const count = ownedCountByName[name] || 0;
+    const captured = count > 0;
+    return `
+      <div class="pal-card rounded-xl p-3 border ${captured ? "bg-[#14201a] border-emerald-700/70" : "bg-black/20 border-slate-800"}">
+        <div class="flex items-center justify-between gap-2">
+          <span class="font-bold text-sm ${captured ? "text-amber-200" : "text-slate-500"}">${escapeHtml(name)}</span>
+          ${
+            captured
+              ? `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full whitespace-nowrap">✅ ×${count}</span>`
+              : `<span class="text-[10px] text-slate-500 whitespace-nowrap">🔒 Non capturé</span>`
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function escapeHtml(str) {
