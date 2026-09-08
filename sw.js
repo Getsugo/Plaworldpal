@@ -2,7 +2,7 @@
 // de l'app pour forcer la mise à jour du cache chez les utilisateurs déjà
 // installés (discipline anti-cache-bust — sans ça, ils resteraient bloqués
 // sur une ancienne version indéfiniment).
-const CACHE_VERSION = "v9";
+const CACHE_VERSION = "v10";
 const CACHE_NAME = `palworld-breeding-${CACHE_VERSION}`;
 
 // Chemins relatifs à la racine du service worker (fonctionne aussi bien à
