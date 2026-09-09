@@ -6,8 +6,17 @@
 export class BreedingCalculator {
   constructor(palsDatabase, specialCombos) {
     this.rankByName = {};
+    this.knownNames = new Set(); // tous les noms de la base, même sans rang connu
+
     for (const p of palsDatabase.pals) {
-      this.rankByName[p.name] = p.breeding_rank;
+      this.knownNames.add(p.name);
+      // On n'ajoute à rankByName QUE les Pals avec un rang d'élevage réellement
+      // connu (breeding_rank non null). Un Pal identifié (nom + CharacterID)
+      // mais sans rang vérifié ne doit jamais entrer dans le calcul par
+      // moyenne — ça produirait des combinaisons silencieusement fausses.
+      if (p.breeding_rank !== null && p.breeding_rank !== undefined) {
+        this.rankByName[p.name] = p.breeding_rank;
+      }
     }
     this.sortedRanks = Object.entries(this.rankByName).sort((a, b) => a[1] - b[1]);
 
@@ -15,6 +24,16 @@ export class BreedingCalculator {
     for (const combo of specialCombos.combos) {
       this.specialComboChild.set(this._pairKey(combo.parent_a, combo.parent_b), combo.child);
     }
+  }
+
+  /** Le Pal existe dans la base (nom + CharacterID connus), rang ou non. */
+  isKnownPal(name) {
+    return this.knownNames.has(name);
+  }
+
+  /** Le Pal a un rang d'élevage vérifié, utilisable dans les calculs. */
+  hasKnownRank(name) {
+    return this.rankByName[name] !== undefined;
   }
 
   _pairKey(a, b) {

@@ -1,4 +1,4 @@
-import { state, idToName, allPalNames } from "./state.js";
+import { state, idToName, allPalNames, calculator } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
 
 let lastOwnedCollection = [];
@@ -145,9 +145,10 @@ function renderOwnedFiltered() {
 
 // --- Mode "Tous les Pals (Global)" : Paldex complet, capturé ou non -----------
 function renderPaldexMode(warningBox) {
+  const rankedCount = allPalNames.filter(n => calculator.hasKnownRank(n)).length;
   warningBox.textContent =
-    `Paldex de la base d'élevage (${allPalNames.length} Pals) — pas encore l'intégralité des ~150 Pals ` +
-    `du jeu (seuls ceux avec un CharacterID connu peuvent être détectés comme "capturés").`;
+    `Paldex complet (${allPalNames.length} Pals, identification via Pal Atlas) — ${rankedCount} avec un rang ` +
+    `d'élevage vérifié (utilisables dans le calculateur), les autres identifiables/capturables mais pas encore élevables.`;
 
   const scoped = state.currentPlayerUid
     ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
@@ -173,6 +174,7 @@ function renderPaldexMode(warningBox) {
   grid.innerHTML = filteredNames.map(name => {
     const count = ownedCountByName[name] || 0;
     const captured = count > 0;
+    const ranked = calculator.hasKnownRank(name);
     return `
       <div class="pal-card rounded-xl p-3 border ${captured ? "bg-[#14201a] border-emerald-700/70" : "bg-black/20 border-slate-800"}">
         <div class="flex items-center justify-between gap-2">
@@ -183,6 +185,7 @@ function renderPaldexMode(warningBox) {
               : `<span class="text-[10px] text-slate-500 whitespace-nowrap">🔒 Non capturé</span>`
           }
         </div>
+        ${ranked ? "" : `<div class="text-[9px] text-slate-500 mt-0.5">⚠️ rang d'élevage inconnu</div>`}
         ${actionButtonsHtml(name)}
       </div>
     `;

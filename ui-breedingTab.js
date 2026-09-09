@@ -41,6 +41,16 @@ function compute() {
   if (!target) return;
   lastTarget = target;
 
+  if (calculator.isKnownPal(target) && !calculator.hasKnownRank(target)) {
+    const spawns = SPAWN_LOCATIONS[target] || [];
+    breedingResult.innerHTML =
+      `<h3 class="font-title text-lg text-amber-300">Résultats pour ${escapeHtml(target)}</h3>` +
+      `<p class="text-amber-300/90">Ce Pal est reconnu (identifiable dans une sauvegarde), mais son rang d'élevage n'est ` +
+      `pas encore vérifié — impossible de calculer des combinaisons pour l'instant. Consultez les zones de capture ci-dessous.</p>` +
+      renderSpawnsBlock(spawns);
+    return;
+  }
+
   if (state.viewMode === "save") {
     computeSaveMode(target, breedingResult);
   } else {
