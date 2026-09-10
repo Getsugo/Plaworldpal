@@ -30,8 +30,18 @@ import { unzlibSync, inflateSync } from "https://esm.sh/fflate@0.8.2";
  */
 
 const GVAS_SIGNATURE = [0x47, 0x56, 0x41, 0x53]; // "GVAS"
-const ZLIB_SCAN_RANGE = 64;
-const RAW_INFLATE_FALLBACK_OFFSET = 12;
+const ZLIB_SCAN_RANGE = 256; // élargi (était 64) au cas où l'en-tête soit plus long que prévu
+const RAW_INFLATE_SCAN_RANGE = 64; // le raw deflate n'a pas de magic bytes à détecter, donc on essaie plusieurs offsets plutôt qu'un seul fixe
+
+// Signatures d'autres formats de compression courants, pour donner un
+// diagnostic clair si le jeu est passé à l'un d'eux (aucun ne serait
+// décompressable par ce code sans une bibliothèque dédiée — fflate ne gère
+// que gzip/zlib/deflate).
+const OTHER_FORMAT_SIGNATURES = [
+  { name: "Zstandard (zstd)", bytes: [0x28, 0xb5, 0x2f, 0xfd] },
+  { name: "LZ4 (frame)", bytes: [0x04, 0x22, 0x4d, 0x18] },
+  { name: "gzip", bytes: [0x1f, 0x8b] },
+];
 
 export function decompressSav(arrayBuffer, onLog = () => {}) {
   const bytes = new Uint8Array(arrayBuffer);
@@ -39,11 +49,22 @@ export function decompressSav(arrayBuffer, onLog = () => {}) {
     throw new Error("Fichier trop court pour être un .sav Palworld valide.");
   }
 
-  const zlibOffsets = findZlibHeaderOffsets(bytes, ZLIB_SCAN_RANGE);
+  // Dump hexadécimal des tout premiers octets : indispensable pour
+  // diagnostiquer un format d'en-tête qu'on n'a encore jamais rencontré,
+  // plutôt que de deviner à l'aveugle à chaque nouveau rapport de bug.
+  onLog(`[decompress] Taille du fichier : ${bytes.byteLength} octets.`);
+  onLog(`[decompress] Premiers octets (hex) : ${toHex(bytes, 0, 32)}`);
+
+  // Le scan zlib couvre maintenant TOUT le fichier (pas juste un préfixe
+  // arbitraire) : sur un fichier de sauvegarde (quelques centaines de Ko à
+  // quelques Mo), c'est rapide, et ça élimine complètement la question
+  // "l'en-tête fait-il 12, 20, 64 ou 300 octets ?" — on ne suppose plus
+  // rien, on cherche partout.
+  const zlibOffsets = findZlibHeaderOffsets(bytes, bytes.length);
   onLog(
     zlibOffsets.length
-      ? `[decompress] En-tête(s) zlib candidat(s) trouvé(s) aux offsets : ${zlibOffsets.join(", ")}.`
-      : `[decompress] Aucun en-tête zlib (0x78 ...) trouvé dans les ${ZLIB_SCAN_RANGE} premiers octets.`
+      ? `[decompress] ${zlibOffsets.length} en-tête(s) zlib candidat(s) trouvé(s) (ex: offsets ${zlibOffsets.slice(0, 5).join(", ")}${zlibOffsets.length > 5 ? "..." : ""}).`
+      : `[decompress] Aucun en-tête zlib (0x78 ...) trouvé dans tout le fichier.`
   );
 
   for (const offset of zlibOffsets) {
@@ -51,22 +72,80 @@ export function decompressSav(arrayBuffer, onLog = () => {}) {
     if (candidate) return candidate;
   }
 
-  onLog(`[decompress] Repli : inflate brut (sans en-tête zlib) à partir de l'offset ${RAW_INFLATE_FALLBACK_OFFSET}...`);
-  const rawCandidate = tryRawInflateAt(bytes, RAW_INFLATE_FALLBACK_OFFSET, onLog);
-  if (rawCandidate) return rawCandidate;
+  onLog(`[decompress] Repli : inflate brut (sans en-tête zlib), scan sur les ${RAW_INFLATE_SCAN_RANGE} premiers octets...`);
+  for (let offset = 0; offset < Math.min(RAW_INFLATE_SCAN_RANGE, bytes.length); offset++) {
+    const candidate = tryRawInflateAt(bytes, offset, onLog);
+    if (candidate) return candidate;
+  }
 
-  onLog("[decompress] Dernier recours : recherche de la signature GVAS en clair (fichier non compressé)...");
-  const directOffset = findBytes(bytes, GVAS_SIGNATURE, 0, 256);
-  if (directOffset !== -1) {
-    onLog(`[decompress] Signature GVAS trouvée en clair à l'offset ${directOffset}.`);
-    return bytes.subarray(directOffset);
+  // Dernier recours : le fichier n'est peut-être pas compressé du tout. On
+  // ne se contente PAS du premier octet "GVAS" trouvé (un faux positif est
+  // possible dans du binaire compressé/structuré non reconnu) : on exige
+  // en plus que les octets qui suivent ressemblent à un vrai en-tête GVAS
+  // (un save_game_version plausible, petit entier) avant d'accepter.
+  onLog("[decompress] Dernier recours : recherche d'une signature GVAS en clair plausible (fichier non compressé)...");
+  const plausible = findPlausibleGvasInClear(bytes, onLog);
+  if (plausible !== -1) {
+    onLog(`[decompress] Signature GVAS plausible trouvée en clair à l'offset ${plausible}.`);
+    return bytes.subarray(plausible);
+  }
+
+  const otherFormat = detectOtherFormat(bytes, Math.min(bytes.length, 4096));
+  if (otherFormat) {
+    throw new Error(
+      `Ce fichier semble compressé en ${otherFormat.name} (signature trouvée à l'offset ${otherFormat.offset}), ` +
+        `pas en zlib/deflate — ce format n'est pas géré par ce décodeur (fflate ne supporte que gzip/zlib/deflate). ` +
+        `Le jeu a probablement changé de méthode de compression avec une mise à jour récente. Signalez-le avec ` +
+        `ce message exact, ça permettra d'ajouter le support du bon format.`
+    );
   }
 
   throw new Error(
     "Impossible de décompresser ce fichier : aucun flux zlib valide, aucun flux deflate brut, et " +
-      "aucune signature GVAS en clair n'ont été trouvés. Voir les logs ci-dessus pour le détail des " +
-      "tentatives."
+      "aucune signature GVAS en clair plausible n'ont été trouvés. Voir les logs ci-dessus (dump hexadécimal " +
+      "et détail des tentatives) — ça permettra de diagnostiquer précisément le format réel de ce fichier."
   );
+}
+
+function toHex(bytes, start, count) {
+  const end = Math.min(start + count, bytes.length);
+  const parts = [];
+  for (let i = start; i < end; i++) parts.push(bytes[i].toString(16).padStart(2, "0"));
+  return parts.join(" ");
+}
+
+/**
+ * Cherche TOUTES les occurrences de la signature "GVAS" dans le fichier, et
+ * ne retient un candidat que si les 4 octets suivants forment un
+ * save_game_version plausible (petit entier positif, 1 à 10). C'est un
+ * garde-fou bon marché mais efficace : un octet "GVAS" qui apparaît par
+ * hasard dans du binaire compressé n'a qu'environ 1 chance sur 4 milliards
+ * d'être suivi d'un petit entier plausible par pur hasard.
+ */
+function findPlausibleGvasInClear(bytes, onLog) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let searchFrom = 0;
+  while (true) {
+    const offset = findBytes(bytes, GVAS_SIGNATURE, searchFrom, bytes.length);
+    if (offset === -1) return -1;
+    if (offset + 8 <= bytes.length) {
+      const saveGameVersion = view.getUint32(offset + 4, true);
+      if (saveGameVersion >= 1 && saveGameVersion <= 10) {
+        return offset;
+      }
+      onLog(`[decompress]   "GVAS" trouvé à l'offset ${offset} mais rejeté (save_game_version=${saveGameVersion} implausible — probablement un faux positif dans du binaire non reconnu).`);
+    }
+    searchFrom = offset + 1;
+  }
+}
+
+function detectOtherFormat(bytes, scanRange) {
+  const limit = Math.min(scanRange, bytes.length);
+  for (const format of OTHER_FORMAT_SIGNATURES) {
+    const offset = findBytes(bytes, format.bytes, 0, limit);
+    if (offset !== -1) return { name: format.name, offset };
+  }
+  return null;
 }
 
 /**
