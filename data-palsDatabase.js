@@ -1,7 +1,7 @@
 // Généré à partir de pals_database.json — éditez directement cet objet JS.
 export const palsDatabase = {
   "_meta": {
-    "description": "262+ Pals. Les entrées avec breeding_rank=null viennent du catalogue noms+CharacterID de Pal Atlas (github.com/Nifrendil/pal-atlas, MIT) : identification et détection de capture fiables, mais rang d'élevage inconnu (exclues du calculateur d'élevage jusqu'à ajout d'une source vérifiée). Les entrées avec un breeding_rank numérique restent la base curatée d'origine (~47 Pals, valeurs approximatives non vérifiées individuellement — voir avertissement dans le README).",
+    "description": "267+ Pals. Rang d'élevage vérifié pour 134 d'entre eux — source : github.com/mlg404/palworld-paldex-api (MIT), breeding.rank/order sourcés d'une feuille de calcul communautaire datamine (voir leur README). Les Pals restants sans breeding_rank (null) sont identifiables/détectables comme capturés (source Pal Atlas) mais exclus du calculateur d'élevage jusqu'à ajout d'une source vérifiée pour leur rang.",
     "breeding_formula": "rang_enfant = round((rang_parent1 + rang_parent2) / 2), puis on prend le Pal dont le breeding_rank est le plus proche de ce nombre (en excluant les combinaisons spéciales listées dans special_combos.json qui priment toujours sur la formule)."
   },
   "pals": [
@@ -21,7 +21,7 @@ export const palsDatabase = {
       "types": [
         "ground"
       ],
-      "breeding_rank": 220
+      "breeding_rank": 570
     },
     {
       "internal_ids": [
@@ -31,7 +31,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 550
+      "breeding_rank": 790
     },
     {
       "internal_ids": [
@@ -42,7 +42,7 @@ export const palsDatabase = {
         "dragon",
         "dark"
       ],
-      "breeding_rank": 90
+      "breeding_rank": 150
     },
     {
       "internal_ids": [
@@ -58,7 +58,7 @@ export const palsDatabase = {
       ],
       "name": "Azurobe",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 500
     },
     {
       "internal_ids": [
@@ -90,7 +90,7 @@ export const palsDatabase = {
       ],
       "name": "Beakon",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 220
     },
     {
       "internal_ids": [
@@ -106,7 +106,7 @@ export const palsDatabase = {
       ],
       "name": "Beegarde",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1070
     },
     {
       "internal_ids": [
@@ -114,7 +114,7 @@ export const palsDatabase = {
       ],
       "name": "Blazamut",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 10
     },
     {
       "internal_ids": [
@@ -122,7 +122,7 @@ export const palsDatabase = {
       ],
       "name": "Blazehowl",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 710
     },
     {
       "internal_ids": [
@@ -130,7 +130,7 @@ export const palsDatabase = {
       ],
       "name": "Blazehowl Noct",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 670
     },
     {
       "internal_ids": [
@@ -146,7 +146,7 @@ export const palsDatabase = {
       ],
       "name": "Bristla",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1320
     },
     {
       "internal_ids": [
@@ -154,7 +154,7 @@ export const palsDatabase = {
       ],
       "name": "Broncherry",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 860
     },
     {
       "internal_ids": [
@@ -162,7 +162,7 @@ export const palsDatabase = {
       ],
       "name": "Broncherry Aqua",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 840
     },
     {
       "internal_ids": [
@@ -180,7 +180,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 500
+      "breeding_rank": 640
     },
     {
       "internal_ids": [
@@ -196,7 +196,7 @@ export const palsDatabase = {
       ],
       "name": "Caprity",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 930
     },
     {
       "internal_ids": [
@@ -222,7 +222,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 890
+      "breeding_rank": 1460
     },
     {
       "internal_ids": [
@@ -230,7 +230,7 @@ export const palsDatabase = {
       ],
       "name": "Cawgnito",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1080
     },
     {
       "internal_ids": [
@@ -238,7 +238,7 @@ export const palsDatabase = {
       ],
       "name": "Celaray",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 870
     },
     {
       "internal_ids": [
@@ -264,7 +264,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 1000
+      "breeding_rank": 1500
     },
     {
       "internal_ids": [
@@ -272,7 +272,7 @@ export const palsDatabase = {
       ],
       "name": "Chillet",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 800
     },
     {
       "internal_ids": [
@@ -288,7 +288,7 @@ export const palsDatabase = {
       ],
       "name": "Cinnamoth",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 490
     },
     {
       "internal_ids": [
@@ -304,7 +304,7 @@ export const palsDatabase = {
       ],
       "name": "Cremis",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1455
     },
     {
       "internal_ids": [
@@ -330,7 +330,7 @@ export const palsDatabase = {
       "types": [
         "ice"
       ],
-      "breeding_rank": 40
+      "breeding_rank": 130
     },
     {
       "internal_ids": [
@@ -346,7 +346,7 @@ export const palsDatabase = {
       ],
       "name": "Daedream",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1230
     },
     {
       "internal_ids": [
@@ -362,7 +362,7 @@ export const palsDatabase = {
       ],
       "name": "Dazzi",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1210
     },
     {
       "internal_ids": [
@@ -378,7 +378,7 @@ export const palsDatabase = {
       ],
       "name": "Depresso",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1380
     },
     {
       "internal_ids": [
@@ -386,7 +386,7 @@ export const palsDatabase = {
       ],
       "name": "Digtoise",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 850
     },
     {
       "internal_ids": [
@@ -394,7 +394,7 @@ export const palsDatabase = {
       ],
       "name": "Dinossom",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 820
     },
     {
       "internal_ids": [
@@ -402,7 +402,7 @@ export const palsDatabase = {
       ],
       "name": "Dinossom Lux",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 810
     },
     {
       "internal_ids": [
@@ -410,7 +410,7 @@ export const palsDatabase = {
       ],
       "name": "Direhowl",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1060
     },
     {
       "internal_ids": [
@@ -442,7 +442,7 @@ export const palsDatabase = {
       ],
       "name": "Dumud",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 895
     },
     {
       "internal_ids": [
@@ -492,7 +492,7 @@ export const palsDatabase = {
       "types": [
         "ice"
       ],
-      "breeding_rank": 700
+      "breeding_rank": 920
     },
     {
       "internal_ids": [
@@ -500,7 +500,7 @@ export const palsDatabase = {
       ],
       "name": "Eikthyrdeer Terra",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 900
     },
     {
       "internal_ids": [
@@ -536,7 +536,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 460
+      "breeding_rank": 330
     },
     {
       "internal_ids": [
@@ -544,7 +544,7 @@ export const palsDatabase = {
       ],
       "name": "Elphidran",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 540
     },
     {
       "internal_ids": [
@@ -552,7 +552,7 @@ export const palsDatabase = {
       ],
       "name": "Elphidran Aqua",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 530
     },
     {
       "internal_ids": [
@@ -563,7 +563,7 @@ export const palsDatabase = {
         "fire",
         "dragon"
       ],
-      "breeding_rank": 150
+      "breeding_rank": 370
     },
     {
       "internal_ids": [
@@ -579,7 +579,7 @@ export const palsDatabase = {
       ],
       "name": "Felbat",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1010
     },
     {
       "internal_ids": [
@@ -587,7 +587,7 @@ export const palsDatabase = {
       ],
       "name": "Fenglope",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 980
     },
     {
       "internal_ids": [
@@ -613,7 +613,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 560
+      "breeding_rank": 1405
     },
     {
       "internal_ids": [
@@ -629,7 +629,7 @@ export const palsDatabase = {
       ],
       "name": "Flopie",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1280
     },
     {
       "internal_ids": [
@@ -637,7 +637,7 @@ export const palsDatabase = {
       ],
       "name": "Foxcicle",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 760
     },
     {
       "internal_ids": [
@@ -647,7 +647,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 620
+      "breeding_rank": 1400
     },
     {
       "internal_ids": [
@@ -665,7 +665,7 @@ export const palsDatabase = {
       "types": [
         "ice"
       ],
-      "breeding_rank": 20
+      "breeding_rank": 120
     },
     {
       "internal_ids": [
@@ -683,7 +683,7 @@ export const palsDatabase = {
       "types": [
         "water"
       ],
-      "breeding_rank": 690
+      "breeding_rank": 1330
     },
     {
       "internal_ids": [
@@ -701,7 +701,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 640
+      "breeding_rank": 1220
     },
     {
       "internal_ids": [
@@ -709,7 +709,7 @@ export const palsDatabase = {
       ],
       "name": "Galeclaw",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1030
     },
     {
       "internal_ids": [
@@ -759,7 +759,7 @@ export const palsDatabase = {
       "types": [
         "water"
       ],
-      "breeding_rank": 600
+      "breeding_rank": 1090
     },
     {
       "internal_ids": [
@@ -767,7 +767,7 @@ export const palsDatabase = {
       ],
       "name": "Gobfin Ignis",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1100
     },
     {
       "internal_ids": [
@@ -775,7 +775,7 @@ export const palsDatabase = {
       ],
       "name": "Gorirat",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1040
     },
     {
       "internal_ids": [
@@ -791,7 +791,7 @@ export const palsDatabase = {
       ],
       "name": "Grintale",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 510
     },
     {
       "internal_ids": [
@@ -811,7 +811,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 850
+      "breeding_rank": 1240
     },
     {
       "internal_ids": [
@@ -827,7 +827,7 @@ export const palsDatabase = {
       ],
       "name": "Hangyu",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1420
     },
     {
       "internal_ids": [
@@ -835,7 +835,7 @@ export const palsDatabase = {
       ],
       "name": "Hangyu Cryst",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1422
     },
     {
       "internal_ids": [
@@ -845,7 +845,7 @@ export const palsDatabase = {
       "types": [
         "dark"
       ],
-      "breeding_rank": 180
+      "breeding_rank": 190
     },
     {
       "internal_ids": [
@@ -869,7 +869,7 @@ export const palsDatabase = {
       ],
       "name": "Hoocrates",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1390
     },
     {
       "internal_ids": [
@@ -893,7 +893,7 @@ export const palsDatabase = {
       ],
       "name": "Incineram",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 590
     },
     {
       "internal_ids": [
@@ -901,7 +901,7 @@ export const palsDatabase = {
       ],
       "name": "Incineram Noct",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 580
     },
     {
       "internal_ids": [
@@ -927,7 +927,7 @@ export const palsDatabase = {
       "types": [
         "dragon"
       ],
-      "breeding_rank": 10
+      "breeding_rank": 90
     },
     {
       "internal_ids": [
@@ -937,7 +937,7 @@ export const palsDatabase = {
       "types": [
         "electric"
       ],
-      "breeding_rank": 610
+      "breeding_rank": 1370
     },
     {
       "internal_ids": [
@@ -945,7 +945,7 @@ export const palsDatabase = {
       ],
       "name": "Jolthog Cryst",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1360
     },
     {
       "internal_ids": [
@@ -956,7 +956,7 @@ export const palsDatabase = {
         "dragon",
         "water"
       ],
-      "breeding_rank": 170
+      "breeding_rank": 310
     },
     {
       "internal_ids": [
@@ -964,7 +964,7 @@ export const palsDatabase = {
       ],
       "name": "Jormuntide Ignis",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 315
     },
     {
       "internal_ids": [
@@ -974,7 +974,7 @@ export const palsDatabase = {
       "types": [
         "dark"
       ],
-      "breeding_rank": 480
+      "breeding_rank": 700
     },
     {
       "internal_ids": [
@@ -982,7 +982,7 @@ export const palsDatabase = {
       ],
       "name": "Kelpsea",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1260
     },
     {
       "internal_ids": [
@@ -990,7 +990,7 @@ export const palsDatabase = {
       ],
       "name": "Kelpsea Ignis",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1270
     },
     {
       "internal_ids": [
@@ -1006,7 +1006,7 @@ export const palsDatabase = {
       ],
       "name": "Killamari",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1290
     },
     {
       "internal_ids": [
@@ -1022,7 +1022,7 @@ export const palsDatabase = {
       ],
       "name": "Kingpaca",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 470
     },
     {
       "internal_ids": [
@@ -1032,7 +1032,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 260
+      "breeding_rank": 830
     },
     {
       "internal_ids": [
@@ -1066,7 +1066,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 880
+      "breeding_rank": 1470
     },
     {
       "internal_ids": [
@@ -1098,7 +1098,7 @@ export const palsDatabase = {
       ],
       "name": "Leezpunk",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1120
     },
     {
       "internal_ids": [
@@ -1106,7 +1106,7 @@ export const palsDatabase = {
       ],
       "name": "Leezpunk Ignis",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1140
     },
     {
       "internal_ids": [
@@ -1116,7 +1116,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 700
+      "breeding_rank": 1430
     },
     {
       "internal_ids": [
@@ -1132,7 +1132,7 @@ export const palsDatabase = {
       ],
       "name": "Loupmoon",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 950
     },
     {
       "internal_ids": [
@@ -1148,7 +1148,7 @@ export const palsDatabase = {
       ],
       "name": "Lovander",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 940
     },
     {
       "internal_ids": [
@@ -1164,7 +1164,7 @@ export const palsDatabase = {
       ],
       "name": "Lunaris",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1110
     },
     {
       "internal_ids": [
@@ -1174,7 +1174,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 260
+      "breeding_rank": 250
     },
     {
       "internal_ids": [
@@ -1182,7 +1182,7 @@ export const palsDatabase = {
       ],
       "name": "Lyleen Noct",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 210
     },
     {
       "internal_ids": [
@@ -1198,7 +1198,7 @@ export const palsDatabase = {
       ],
       "name": "Mammorest",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 300
     },
     {
       "internal_ids": [
@@ -1206,7 +1206,7 @@ export const palsDatabase = {
       ],
       "name": "Mammorest Cryst",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 290
     },
     {
       "internal_ids": [
@@ -1214,7 +1214,7 @@ export const palsDatabase = {
       ],
       "name": "Maraith",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1150
     },
     {
       "internal_ids": [
@@ -1224,7 +1224,7 @@ export const palsDatabase = {
       "types": [
         "dark"
       ],
-      "breeding_rank": 700
+      "breeding_rank": 1480
     },
     {
       "internal_ids": [
@@ -1232,7 +1232,7 @@ export const palsDatabase = {
       ],
       "name": "Melpaca",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 890
     },
     {
       "internal_ids": [
@@ -1240,7 +1240,7 @@ export const palsDatabase = {
       ],
       "name": "Menasting",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 260
     },
     {
       "internal_ids": [
@@ -1274,7 +1274,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 300
+      "breeding_rank": 430
     },
     {
       "internal_ids": [
@@ -1282,7 +1282,7 @@ export const palsDatabase = {
       ],
       "name": "Mossanda Lux",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 390
     },
     {
       "internal_ids": [
@@ -1290,7 +1290,7 @@ export const palsDatabase = {
       ],
       "name": "Mozzarina",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 910
     },
     {
       "internal_ids": [
@@ -1362,7 +1362,7 @@ export const palsDatabase = {
       ],
       "name": "Nitewing",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 420
     },
     {
       "internal_ids": [
@@ -1372,7 +1372,7 @@ export const palsDatabase = {
       "types": [
         "dark"
       ],
-      "breeding_rank": 590
+      "breeding_rank": 1180
     },
     {
       "internal_ids": [
@@ -1404,7 +1404,7 @@ export const palsDatabase = {
       ],
       "name": "Orserk",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 140
     },
     {
       "internal_ids": [
@@ -1433,7 +1433,7 @@ export const palsDatabase = {
         "water",
         "ice"
       ],
-      "breeding_rank": 780
+      "breeding_rank": 1350
     },
     {
       "internal_ids": [
@@ -1444,7 +1444,7 @@ export const palsDatabase = {
         "water",
         "ice"
       ],
-      "breeding_rank": 320
+      "breeding_rank": 520
     },
     {
       "internal_ids": [
@@ -1452,7 +1452,7 @@ export const palsDatabase = {
       ],
       "name": "Petallia",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 780
     },
     {
       "internal_ids": [
@@ -1540,7 +1540,7 @@ export const palsDatabase = {
       ],
       "name": "Pyrin",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 360
     },
     {
       "internal_ids": [
@@ -1548,7 +1548,7 @@ export const palsDatabase = {
       ],
       "name": "Pyrin Noct",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 240
     },
     {
       "internal_ids": [
@@ -1556,7 +1556,7 @@ export const palsDatabase = {
       ],
       "name": "Quivern",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 350
     },
     {
       "internal_ids": [
@@ -1572,7 +1572,7 @@ export const palsDatabase = {
       ],
       "name": "Ragnahawk",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 380
     },
     {
       "internal_ids": [
@@ -1580,7 +1580,7 @@ export const palsDatabase = {
       ],
       "name": "Rayhound",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 740
     },
     {
       "internal_ids": [
@@ -1598,7 +1598,7 @@ export const palsDatabase = {
       "types": [
         "ice"
       ],
-      "breeding_rank": 420
+      "breeding_rank": 880
     },
     {
       "internal_ids": [
@@ -1617,7 +1617,7 @@ export const palsDatabase = {
       ],
       "name": "Relaxaurus Lux",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 270
     },
     {
       "internal_ids": [
@@ -1633,7 +1633,7 @@ export const palsDatabase = {
       ],
       "name": "Reptyro",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 320
     },
     {
       "internal_ids": [
@@ -1641,7 +1641,7 @@ export const palsDatabase = {
       ],
       "name": "Reptyro Cryst",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 230
     },
     {
       "internal_ids": [
@@ -1649,7 +1649,7 @@ export const palsDatabase = {
       ],
       "name": "Ribbuny",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1310
     },
     {
       "internal_ids": [
@@ -1667,7 +1667,7 @@ export const palsDatabase = {
       "types": [
         "grass"
       ],
-      "breeding_rank": 590
+      "breeding_rank": 1020
     },
     {
       "internal_ids": [
@@ -1675,7 +1675,7 @@ export const palsDatabase = {
       ],
       "name": "Robinquill Terra",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1000
     },
     {
       "internal_ids": [
@@ -1685,7 +1685,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 560
+      "breeding_rank": 1155
     },
     {
       "internal_ids": [
@@ -1703,7 +1703,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 650
+      "breeding_rank": 1130
     },
     {
       "internal_ids": [
@@ -1730,7 +1730,7 @@ export const palsDatabase = {
         "dark",
         "dragon"
       ],
-      "breeding_rank": 100
+      "breeding_rank": 60
     },
     {
       "internal_ids": [
@@ -1762,7 +1762,7 @@ export const palsDatabase = {
       ],
       "name": "Sibelyx",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 450
     },
     {
       "internal_ids": [
@@ -1892,7 +1892,7 @@ export const palsDatabase = {
       "types": [
         "electric"
       ],
-      "breeding_rank": 660
+      "breeding_rank": 1410
     },
     {
       "internal_ids": [
@@ -1926,7 +1926,7 @@ export const palsDatabase = {
       "types": [
         "water"
       ],
-      "breeding_rank": 340
+      "breeding_rank": 560
     },
     {
       "internal_ids": [
@@ -1934,7 +1934,7 @@ export const palsDatabase = {
       ],
       "name": "Surfent Terra",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 550
     },
     {
       "internal_ids": [
@@ -1944,7 +1944,7 @@ export const palsDatabase = {
       "types": [
         "fire"
       ],
-      "breeding_rank": 130
+      "breeding_rank": 50
     },
     {
       "internal_ids": [
@@ -1952,7 +1952,7 @@ export const palsDatabase = {
       ],
       "name": "Suzaku Aqua",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 30
     },
     {
       "internal_ids": [
@@ -1960,7 +1960,7 @@ export const palsDatabase = {
       ],
       "name": "Swee",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1300
     },
     {
       "internal_ids": [
@@ -1968,7 +1968,7 @@ export const palsDatabase = {
       ],
       "name": "Sweepa",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 410
     },
     {
       "internal_ids": [
@@ -1976,7 +1976,7 @@ export const palsDatabase = {
       ],
       "name": "Tanzee",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1250
     },
     {
       "internal_ids": [
@@ -2002,7 +2002,7 @@ export const palsDatabase = {
       "types": [
         "water"
       ],
-      "breeding_rank": 940
+      "breeding_rank": 1490
     },
     {
       "internal_ids": [
@@ -2026,7 +2026,7 @@ export const palsDatabase = {
       ],
       "name": "Tocotoco",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1340
     },
     {
       "internal_ids": [
@@ -2034,7 +2034,7 @@ export const palsDatabase = {
       ],
       "name": "Tombat",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 750
     },
     {
       "internal_ids": [
@@ -2066,7 +2066,7 @@ export const palsDatabase = {
       ],
       "name": "Univolt",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 680
     },
     {
       "internal_ids": [
@@ -2082,7 +2082,7 @@ export const palsDatabase = {
       ],
       "name": "Vaelet",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1050
     },
     {
       "internal_ids": [
@@ -2101,7 +2101,7 @@ export const palsDatabase = {
         "fire",
         "dark"
       ],
-      "breeding_rank": 280
+      "breeding_rank": 660
     },
     {
       "internal_ids": [
@@ -2109,7 +2109,7 @@ export const palsDatabase = {
       ],
       "name": "Vanwyrm Cryst",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 620
     },
     {
       "internal_ids": [
@@ -2125,7 +2125,7 @@ export const palsDatabase = {
       ],
       "name": "Verdash",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 990
     },
     {
       "internal_ids": [
@@ -2135,7 +2135,7 @@ export const palsDatabase = {
       "types": [
         "neutral"
       ],
-      "breeding_rank": 870
+      "breeding_rank": 1450
     },
     {
       "internal_ids": [
@@ -2143,7 +2143,7 @@ export const palsDatabase = {
       ],
       "name": "Warsect",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 340
     },
     {
       "internal_ids": [
@@ -2191,7 +2191,7 @@ export const palsDatabase = {
       ],
       "name": "Wixen",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1160
     },
     {
       "internal_ids": [
@@ -2207,7 +2207,7 @@ export const palsDatabase = {
       ],
       "name": "Woolipop",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 1190
     },
     {
       "internal_ids": [
@@ -2225,7 +2225,7 @@ export const palsDatabase = {
       "types": [
         "ice"
       ],
-      "breeding_rank": 360
+      "breeding_rank": 460
     },
     {
       "internal_ids": [
@@ -2233,7 +2233,7 @@ export const palsDatabase = {
       ],
       "name": "Wumpo Botan",
       "types": [],
-      "breeding_rank": null
+      "breeding_rank": 480
     },
     {
       "internal_ids": [
