@@ -1,4 +1,4 @@
-import { state, calculator, idToName, SPAWN_LOCATIONS, allPalNames } from "./state.js";
+import { state, calculator, SPAWN_LOCATIONS, allPalNames, getEffectiveOwnedPals, resolveOwnedPalName } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
 import { attachAutocomplete } from "./ui-autocomplete.js";
 
@@ -85,16 +85,13 @@ function computeGlobalMode(target, breedingResult) {
 }
 
 function computeSaveMode(target, breedingResult) {
-  if (!state.pals.length) {
-    breedingResult.innerHTML = `<p class="text-amber-300">Importez d'abord une sauvegarde (onglet Import), ou basculez en mode "Tous les Pals (Global)" ci-dessus.</p>`;
+  const owned = getEffectiveOwnedPals();
+  if (!owned.length) {
+    breedingResult.innerHTML = `<p class="text-amber-300">Importez une sauvegarde, ou pointez manuellement vos Pals (onglet Collection), ou basculez en mode "Tous les Pals (Global)" ci-dessus.</p>`;
     return;
   }
 
-  const owned = state.currentPlayerUid
-    ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
-    : state.pals;
-
-  const combos = calculator.findCombosForTarget(target, owned, idToName);
+  const combos = calculator.findCombosForTarget(target, owned, resolveOwnedPalName);
   const spawns = SPAWN_LOCATIONS[target] || [];
 
   let html = `<h3 class="font-title text-lg text-amber-300">Résultats pour ${escapeHtml(target)} <span class="text-xs font-normal text-emerald-300/60">(mode sauvegarde — vos Pals uniquement)</span></h3>`;

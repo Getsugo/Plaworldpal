@@ -61,10 +61,10 @@ export class BreedingCalculator {
     return bestName;
   }
 
-  findCombosForTarget(targetName, ownedPals, idToName) {
+  findCombosForTarget(targetName, ownedPals, resolveName) {
     const bySpecies = {};
     for (const pal of ownedPals) {
-      const name = idToName[pal.species_id];
+      const name = resolveName(pal);
       if (!name) continue;
       if (!bySpecies[name]) bySpecies[name] = { Male: 0, Female: 0 };
       if (pal.gender === "Male" || pal.gender === "Female") {

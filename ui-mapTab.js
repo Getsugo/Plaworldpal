@@ -1,4 +1,4 @@
-import { state, idToName, SPAWN_LOCATIONS } from "./state.js";
+import { state, SPAWN_LOCATIONS, getOwnedCountByName } from "./state.js";
 import { renderModeToggle } from "./ui-modeToggle.js";
 import { realSpawnPoints } from "./data-realSpawnPoints.js";
 import { attachAutocomplete } from "./ui-autocomplete.js";
@@ -217,13 +217,11 @@ function plotPalOnMap(palName) {
 }
 
 function renderCaptureStatus(palName) {
-  if (!state.pals.length) {
-    return `<p class="text-amber-300/90 mb-2">Importez une sauvegarde pour voir votre statut de capture, ou basculez en mode "Tous les Pals (Global)".</p>`;
+  const counts = getOwnedCountByName();
+  if (!Object.keys(counts).length) {
+    return `<p class="text-amber-300/90 mb-2">Importez une sauvegarde ou pointez vos Pals manuellement (onglet Collection) pour voir votre statut de capture, ou basculez en mode "Tous les Pals (Global)".</p>`;
   }
-  const owned = state.currentPlayerUid
-    ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
-    : state.pals;
-  const count = owned.filter(p => idToName[p.species_id] === palName).length;
+  const count = counts[palName] || 0;
   return count > 0
     ? `<div class="bg-emerald-900/40 border border-emerald-600/60 rounded-lg p-3 mb-2 text-sm">✅ Déjà capturé — vous en possédez ${count}.</div>`
     : `<div class="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 mb-2 text-sm">❌ Pas encore capturé dans votre sauvegarde.</div>`;
