@@ -64,20 +64,21 @@ function portraitHtml(name, captured) {
 }
 
 /**
- * Contrôle +/- pour le pointage manuel — indépendant du parsing de
- * sauvegarde (utile si l'import automatique ne fonctionne pas pour votre
- * fichier, ou simplement par préférence). Toujours visible, sur chaque
- * carte, dans les deux modes.
+ * Bascule simple "je l'ai / pas encore" pour le pointage manuel —
+ * indépendant du parsing de sauvegarde. Une seule zone tactile, pas de
+ * quantité à gérer. Visible sur chaque carte, dans les deux modes.
  */
-function manualStepperHtml(name, manualCount) {
+function manualToggleHtml(name, isOwned) {
   const safeName = escapeHtml(name);
   return `
-    <div class="flex items-center justify-center gap-2 mt-2 text-[10px] text-slate-400">
-      <span>Pointage manuel :</span>
-      <button type="button" data-manual-adjust="-1" data-pal="${safeName}" aria-label="Retirer un ${safeName}" class="w-5 h-5 rounded bg-slate-700/70 hover:bg-slate-600 text-white leading-none">−</button>
-      <span class="w-4 text-center text-slate-200">${manualCount}</span>
-      <button type="button" data-manual-adjust="1" data-pal="${safeName}" aria-label="Ajouter un ${safeName}" class="w-5 h-5 rounded bg-slate-700/70 hover:bg-slate-600 text-white leading-none">+</button>
-    </div>
+    <button type="button" data-manual-toggle data-pal="${safeName}"
+      class="mt-2 w-full text-[11px] font-semibold rounded-lg px-2 py-1.5 transition ${
+        isOwned
+          ? "bg-emerald-500/25 text-emerald-200 border border-emerald-500/50"
+          : "bg-slate-700/50 text-slate-300 border border-slate-600/60"
+      }">
+      ${isOwned ? "✅ Je l'ai" : "☐ Je l'ai"}
+    </button>
   `;
 }
 
@@ -101,12 +102,11 @@ export function initCollectionTab() {
       return;
     }
 
-    const stepBtn = e.target.closest("[data-manual-adjust]");
-    if (stepBtn) {
-      const name = stepBtn.dataset.pal;
-      const delta = Number(stepBtn.dataset.manualAdjust);
-      const current = state.manualOwned[name] || 0;
-      setManualOwned(name, current + delta);
+    const toggleBtn = e.target.closest("[data-manual-toggle]");
+    if (toggleBtn) {
+      const name = toggleBtn.dataset.pal;
+      const currentlyOwned = !!state.manualOwned[name];
+      setManualOwned(name, !currentlyOwned);
       renderCurrentMode();
     }
   });
@@ -173,12 +173,14 @@ function actionButtonsHtml(palName) {
   `;
 }
 
-// --- Mode "Mes Pals (Sauvegarde)" : instances réelles + pointage manuel -------
+// --- Mode "Mes Pals (Sauvegarde)" : UNIQUEMENT les Pals possédés --------------
+// (sauvegarde réelle + pointage manuel "je l'ai") — un Pal non possédé
+// n'apparaît jamais dans cette liste, contrairement au Paldex complet.
 function renderOwnedMode(warningBox) {
   const grid = document.getElementById("collection-grid");
-  const manualEntries = Object.entries(state.manualOwned).filter(([, c]) => c > 0);
+  const manualNames = Object.keys(state.manualOwned).filter(name => state.manualOwned[name]);
 
-  if (!state.pals.length && !manualEntries.length) {
+  if (!state.pals.length && !manualNames.length) {
     grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Importez une sauvegarde (onglet Import), ou pointez vos Pals manuellement depuis le Paldex (mode "Tous les Pals").</p>`;
     warningBox.textContent = "";
     lastOwnedCollection = [];
@@ -196,7 +198,7 @@ function renderOwnedMode(warningBox) {
     return { ...p, species_name: name || `[Inconnu: ${p.species_id}]`, manual: false };
   });
 
-  const fromManual = manualEntries.map(([name, count]) => ({
+  const fromManual = manualNames.map(name => ({
     instance_id: `manual-${name}`,
     species_name: name,
     gender: null,
@@ -204,7 +206,6 @@ function renderOwnedMode(warningBox) {
     is_lucky: false,
     passives: [],
     manual: true,
-    manual_count: count,
   }));
 
   lastOwnedCollection = [...fromSave, ...fromManual];
@@ -234,11 +235,11 @@ function renderOwnedFiltered() {
         <span class="font-bold text-amber-200 text-sm">${escapeHtml(p.species_name)}</span>
         ${p.gender ? `<span class="text-xs ${p.gender === "Female" ? "text-pink-300" : "text-sky-300"}">${p.gender === "Female" ? "♀" : "♂"}</span>` : ""}
       </div>
-      ${p.manual ? `<div class="text-[10px] text-slate-400">📝 pointé manuellement ×${p.manual_count}</div>` : ""}
+      ${p.manual ? `<div class="text-[10px] text-slate-400">📝 pointé manuellement</div>` : ""}
       ${p.nickname ? `<div class="text-xs text-emerald-100/60 italic">"${escapeHtml(p.nickname)}"</div>` : ""}
       ${p.is_lucky ? `<div class="text-xs text-amber-400">✨ Lucky</div>` : ""}
       ${p.passives && p.passives.length ? `<div class="mt-1 flex flex-wrap gap-1 justify-center">${p.passives.map(pa => `<span class="text-[10px] bg-emerald-900/70 px-1.5 py-0.5 rounded">${escapeHtml(pa)}</span>`).join("")}</div>` : ""}
-      ${p.manual ? manualStepperHtml(p.species_name, p.manual_count) : ""}
+      ${p.manual ? manualToggleHtml(p.species_name, true) : ""}
       ${actionButtonsHtml(p.species_name)}
     </div>
   `).join("");
@@ -250,7 +251,7 @@ function renderPaldexMode(warningBox) {
   warningBox.textContent =
     `Paldex complet (${allPalNames.length} Pals, identification via Pal Atlas) — ${rankedCount} avec un rang ` +
     `d'élevage vérifié (utilisables dans le calculateur), les autres identifiables/capturables mais pas encore élevables. ` +
-    `Le pointage manuel (+/-) sur chaque carte fonctionne indépendamment du parsing de sauvegarde. ` +
+    `Le bouton "Je l'ai" sur chaque carte fonctionne indépendamment du parsing de sauvegarde. ` +
     `Portraits : déposez vos propres images "pal-icon-<nom>.webp" à la racine (voir commentaire en tête de ui-collectionTab.js).`;
 
   const combinedCounts = getOwnedCountByName();
@@ -268,7 +269,7 @@ function renderPaldexMode(warningBox) {
   grid.innerHTML = filteredNames.map(name => {
     const totalCount = combinedCounts[name] || 0;
     const captured = totalCount > 0;
-    const manualCount = state.manualOwned[name] || 0;
+    const manuallyOwned = !!state.manualOwned[name];
     const ranked = calculator.hasKnownRank(name);
     return `
       <div class="pal-card rounded-xl p-3 border text-center ${captured ? "bg-[#14201a] border-emerald-700/70" : "bg-black/20 border-slate-800"}">
@@ -284,7 +285,7 @@ function renderPaldexMode(warningBox) {
           }
         </div>
         ${ranked ? "" : `<div class="text-[9px] text-slate-500 mt-0.5">⚠️ rang d'élevage inconnu</div>`}
-        ${manualStepperHtml(name, manualCount)}
+        ${manualToggleHtml(name, manuallyOwned)}
         ${actionButtonsHtml(name)}
       </div>
     `;

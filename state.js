@@ -21,10 +21,11 @@ export const state = {
   // "save"    : filtre sur les Pals réellement possédés (sauvegarde + pointage manuel).
   // Par défaut "global" si rien n'est chargé (voir aussi forceViewModeConsistency()).
   viewMode: localStorage.getItem(LS_KEYS.viewMode) || "global",
-  // Pointage manuel : { "Lamball": 2, "Anubis": 1, ... } — indépendant du
-  // parsing de sauvegarde, pour les cas où l'import automatique ne
-  // fonctionne pas (ex: format de compression non supporté par le
-  // décodeur navigateur) ou simplement par préférence.
+  // Pointage manuel : { "Lamball": true, "Anubis": true, ... } — un simple
+  // "je l'ai / je ne l'ai pas", indépendant du parsing de sauvegarde, pour
+  // les cas où l'import automatique ne fonctionne pas (ex: format de
+  // compression non supporté par le décodeur navigateur) ou simplement par
+  // préférence.
   manualOwned: JSON.parse(localStorage.getItem(LS_KEYS.manualOwned) || "{}"),
 };
 
@@ -50,10 +51,10 @@ export function resetState() {
   persist();
 }
 
-export function setManualOwned(name, count) {
-  const safeCount = Math.max(0, count);
-  if (safeCount === 0) delete state.manualOwned[name];
-  else state.manualOwned[name] = safeCount;
+/** Bascule simple "je l'ai / je ne l'ai pas" — pas de quantité à gérer. */
+export function setManualOwned(name, owned) {
+  if (!owned) delete state.manualOwned[name];
+  else state.manualOwned[name] = true;
   persist();
 }
 
@@ -90,7 +91,8 @@ export function resolveOwnedPalName(pal) {
 }
 
 /** Compte combiné (sauvegarde + pointage manuel) par nom de Pal — pour
- * l'affichage du statut de capture (Collection, Carte). */
+ * l'affichage du statut de capture (Collection, Carte). Le pointage manuel
+ * ajoute 1 (présence/absence, pas de quantité). */
 export function getOwnedCountByName(scopeToCurrentPlayer = true) {
   const fromSave = scopeToCurrentPlayer && state.currentPlayerUid
     ? state.pals.filter(p => p.owner_uid === state.currentPlayerUid)
@@ -102,19 +104,19 @@ export function getOwnedCountByName(scopeToCurrentPlayer = true) {
     if (!name) continue;
     counts[name] = (counts[name] || 0) + 1;
   }
-  for (const [name, count] of Object.entries(state.manualOwned)) {
-    counts[name] = (counts[name] || 0) + count;
+  for (const name of Object.keys(state.manualOwned)) {
+    if (!state.manualOwned[name]) continue;
+    counts[name] = (counts[name] || 0) + 1;
   }
   return counts;
 }
 
 /**
  * Pals "effectifs" pour le calculateur d'élevage : instances réelles de la
- * sauvegarde + entrées synthétiques pour le pointage manuel. Une entrée
- * manuelle est traitée comme ayant au moins un mâle ET une femelle
- * disponibles — simplification nécessaire puisque la saisie manuelle ne
- * demande pas le détail du sexe (sinon il faudrait marquer chaque Pal
- * individuellement avec son sexe, bien plus fastidieux).
+ * sauvegarde + entrées synthétiques pour le pointage manuel. Un Pal pointé
+ * manuellement est traité comme ayant au moins un mâle ET une femelle
+ * disponibles — simplification nécessaire puisque le pointage manuel est
+ * un simple "je l'ai / je ne l'ai pas", sans détail de sexe.
  */
 export function getEffectiveOwnedPals(scopeToCurrentPlayer = true) {
   const fromSave = scopeToCurrentPlayer && state.currentPlayerUid
@@ -123,7 +125,7 @@ export function getEffectiveOwnedPals(scopeToCurrentPlayer = true) {
 
   const synthetic = [];
   for (const name of Object.keys(state.manualOwned)) {
-    if (state.manualOwned[name] <= 0) continue;
+    if (!state.manualOwned[name]) continue;
     synthetic.push({ instance_id: `manual-${name}-M`, species_id: null, __manualName: name, gender: "Male", owner_uid: null });
     synthetic.push({ instance_id: `manual-${name}-F`, species_id: null, __manualName: name, gender: "Female", owner_uid: null });
   }
