@@ -147,4 +147,72 @@ export class BreedingCalculator {
     }
     return results;
   }
+
+  /**
+   * Recherche un CHEMIN d'élevage en plusieurs étapes quand aucune
+   * combinaison directe n'existe parmi les Pals possédés : élever d'abord
+   * un ou plusieurs Pals "intermédiaires" (qu'on ne possède pas encore,
+   * mais qu'on PEUT obtenir avec ce qu'on a), pour ensuite s'en servir comme
+   * parent. Parcours en largeur (BFS) sur les Pals atteignables, donc le
+   * chemin renvoyé est le plus court possible (le moins d'étapes en plus).
+   *
+   * Retourne un tableau d'étapes dans l'ordre où les réaliser (les plus
+   * profondes d'abord, la dernière produit `targetName`), ou `null` si
+   * introuvable dans la limite de profondeur.
+   */
+  findBreedingPath(targetName, ownedNames, maxDepth = 4) {
+    const uniqueOwned = [...new Set(ownedNames)];
+    const achievable = new Map(); // nom -> { recipe: {parentA, parentB} | null }
+    for (const name of uniqueOwned) achievable.set(name, { recipe: null });
+
+    if (achievable.has(targetName)) return []; // déjà possédé (sécurité, ne devrait pas arriver ici)
+
+    for (let depth = 1; depth <= maxDepth; depth++) {
+      const namesAtStart = [...achievable.keys()];
+      let addedAny = false;
+
+      for (let i = 0; i < namesAtStart.length; i++) {
+        for (let j = i; j < namesAtStart.length; j++) {
+          const a = namesAtStart[i];
+          const b = namesAtStart[j];
+          const child = this.predictChild(a, b);
+          if (!child || achievable.has(child)) continue;
+
+          achievable.set(child, { recipe: { parentA: a, parentB: b } });
+          addedAny = true;
+
+          if (child === targetName) {
+            return this._reconstructBreedingPath(targetName, achievable, uniqueOwned);
+          }
+        }
+      }
+      if (!addedAny) break; // point fixe atteint, rien de nouveau n'est atteignable
+    }
+    return null;
+  }
+
+  /** Remonte les recettes nécessaires depuis la cible, dans l'ordre où les réaliser. */
+  _reconstructBreedingPath(targetName, achievable, ownedNames) {
+    const steps = [];
+    const visited = new Set();
+
+    const visit = (name) => {
+      if (visited.has(name)) return;
+      visited.add(name);
+      const entry = achievable.get(name);
+      if (!entry || !entry.recipe) return; // possédé directement, pas de recette à faire
+      visit(entry.recipe.parentA);
+      visit(entry.recipe.parentB);
+      steps.push({
+        parentA: entry.recipe.parentA,
+        parentB: entry.recipe.parentB,
+        child: name,
+        parentAOwned: ownedNames.includes(entry.recipe.parentA),
+        parentBOwned: ownedNames.includes(entry.recipe.parentB),
+      });
+    };
+
+    visit(targetName);
+    return steps;
+  }
 }

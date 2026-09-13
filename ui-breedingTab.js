@@ -109,7 +109,30 @@ function computeSaveMode(target, breedingResult) {
       </div>
     `).join("") + `</div>`;
   } else {
-    html += `<p class="text-amber-300/90">Aucune combinaison possible avec votre collection actuelle. Consultez les zones de capture ci-dessous, ou basculez en mode "Tous les Pals (Global)" pour voir toutes les combinaisons théoriques.</p>`;
+    // Pas de combo direct : on cherche un chemin en plusieurs étapes (élever
+    // d'abord un Pal intermédiaire qu'on ne possède pas encore, mais qu'on
+    // PEUT obtenir avec ce qu'on a, pour ensuite s'en servir comme parent).
+    const ownedNames = [...new Set(owned.map(resolveOwnedPalName).filter(Boolean))];
+    const path = calculator.findBreedingPath(target, ownedNames);
+
+    if (path && path.length) {
+      html += `<p class="text-emerald-200/80 mb-2">Aucune combinaison directe, mais voici un chemin possible en ${path.length} étape${path.length > 1 ? "s" : ""} à partir de vos Pals :</p>`;
+      html += `<div class="grid gap-2">` + path.map((step, i) => `
+        <div class="bg-[#14201a] border border-sky-700/50 rounded-xl p-4">
+          <div class="flex items-center gap-2 text-xs text-sky-300/80 mb-1">Étape ${i + 1}${i === path.length - 1 ? " — résultat final" : ""}</div>
+          <div class="flex items-center gap-3 text-sm flex-wrap">
+            <span class="font-bold ${step.parentAOwned ? "text-sky-300" : "text-slate-400"}">${escapeHtml(step.parentA)}${step.parentAOwned ? "" : " (à élever à l'étape précédente)"}</span>
+            <span class="text-emerald-400">+</span>
+            <span class="font-bold ${step.parentBOwned ? "text-pink-300" : "text-slate-400"}">${escapeHtml(step.parentB)}${step.parentBOwned ? "" : " (à élever à l'étape précédente)"}</span>
+            <span class="text-emerald-400">→</span>
+            <span class="font-bold text-amber-200">${escapeHtml(step.child)}</span>
+          </div>
+        </div>
+      `).join("") + `</div>`;
+      html += `<p class="text-xs text-slate-400 mt-2">⚠️ Le sexe d'un Pal obtenu par élevage est aléatoire — il faudra peut-être répéter une étape plusieurs fois pour obtenir le sexe voulu avant de passer à la suivante.</p>`;
+    } else {
+      html += `<p class="text-amber-300/90">Aucune combinaison possible avec votre collection actuelle, même en plusieurs étapes. Consultez les zones de capture ci-dessous, ou basculez en mode "Tous les Pals (Global)" pour voir toutes les combinaisons théoriques.</p>`;
+    }
   }
 
   html += renderSpawnsBlock(spawns);
