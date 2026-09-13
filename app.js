@@ -14,12 +14,32 @@ export function activateTab(name) {
   tabPanels.forEach(p => p.classList.toggle("hidden", p.id !== `tab-${name}`));
   // Chaque onglet re-synchronise son affichage avec l'état courant à chaque
   // activation (utile notamment pour que le commutateur Global/Sauvegarde
-  // reflète toujours la présence ou non d'une sauvegarde chargée).
+  // reflète toujours la présence ou non d'une source de possession).
+  refreshSaveStatus();
   if (name === "collection") renderCollection();
   if (name === "breeding") refreshBreedingModeToggle();
   if (name === "map") refreshMapModeToggle();
 }
 tabButtons.forEach(btn => btn.addEventListener("click", () => activateTab(btn.dataset.tab)));
+
+/**
+ * Le texte d'en-tête reflète maintenant AUSSI le pointage manuel (avant, il
+ * disait "Aucune sauvegarde chargée" même avec des Pals pointés
+ * manuellement — source de confusion : on pouvait avoir des données de
+ * possession actives sans que l'app ne le signale nulle part en haut).
+ */
+function refreshSaveStatus() {
+  if (state.filename) {
+    saveStatus.textContent = `Sauvegarde : ${state.filename}`;
+    return;
+  }
+  const manualCount = Object.keys(state.manualOwned).length;
+  if (manualCount > 0) {
+    saveStatus.textContent = `Pointage manuel actif (${manualCount} Pal${manualCount > 1 ? "s" : ""})`;
+    return;
+  }
+  saveStatus.textContent = "Aucune sauvegarde chargée";
+}
 
 // --- Onglet Import : drag & drop + parsing local --------------------------------
 const dropzone = document.getElementById("dropzone");
@@ -108,9 +128,9 @@ function refreshPlayerPicker() {
 }
 
 resetBtn.addEventListener("click", () => {
-  if (!confirm("Effacer les données de sauvegarde stockées localement dans ce navigateur ?")) return;
+  if (!confirm("Effacer les données de sauvegarde stockées localement dans ce navigateur ? (le pointage manuel n'est pas affecté)")) return;
   resetState();
-  saveStatus.textContent = "Aucune sauvegarde chargée";
+  refreshSaveStatus();
   importResult.innerHTML = "";
   playerPicker.classList.add("hidden");
   resetBtn.classList.add("hidden");
@@ -119,8 +139,8 @@ resetBtn.addEventListener("click", () => {
 });
 
 // --- Restauration au chargement ---------------------------------------------------
+refreshSaveStatus();
 if (state.filename) {
-  saveStatus.textContent = `Sauvegarde : ${state.filename}`;
   resetBtn.classList.remove("hidden");
   refreshPlayerPicker();
 }
