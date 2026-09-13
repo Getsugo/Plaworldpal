@@ -30,7 +30,7 @@ export function renderModeToggle(container, onChange) {
         data-mode="save"
         class="mode-toggle-btn px-3 py-1.5 rounded-full font-semibold transition"
         ${hasOwnershipData ? "" : "disabled"}
-        title="${hasOwnershipData ? "" : "Importez une sauvegarde, ou pointez vos Pals manuellement (onglet Collection → Tous les Pals → bouton Je l'ai)"}"
+        title="${hasOwnershipData ? "" : "Pointez vos Pals manuellement (onglet Collection → Tous les Pals → bouton Je l'ai)"}"
       >💾 Mes Pals (Sauvegarde)</button>
     </div>
   `;

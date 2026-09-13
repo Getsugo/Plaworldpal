@@ -219,7 +219,7 @@ function plotPalOnMap(palName) {
 function renderCaptureStatus(palName) {
   const counts = getOwnedCountByName();
   if (!Object.keys(counts).length) {
-    return `<p class="text-amber-300/90 mb-2">Importez une sauvegarde ou pointez vos Pals manuellement (onglet Collection) pour voir votre statut de capture, ou basculez en mode "Tous les Pals (Global)".</p>`;
+    return `<p class="text-amber-300/90 mb-2">Pointez vos Pals manuellement (onglet Collection) pour voir votre statut de capture, ou basculez en mode "Tous les Pals (Global)".</p>`;
   }
   const count = counts[palName] || 0;
   return count > 0

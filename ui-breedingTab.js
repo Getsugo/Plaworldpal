@@ -87,7 +87,7 @@ function computeGlobalMode(target, breedingResult) {
 function computeSaveMode(target, breedingResult) {
   const owned = getEffectiveOwnedPals();
   if (!owned.length) {
-    breedingResult.innerHTML = `<p class="text-amber-300">Importez une sauvegarde, ou pointez manuellement vos Pals (onglet Collection), ou basculez en mode "Tous les Pals (Global)" ci-dessus.</p>`;
+    breedingResult.innerHTML = `<p class="text-amber-300">Pointez d'abord vos Pals manuellement (onglet Collection), ou basculez en mode "Tous les Pals (Global)" ci-dessus.</p>`;
     return;
   }
 

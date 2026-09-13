@@ -181,7 +181,7 @@ function renderOwnedMode(warningBox) {
   const manualNames = Object.keys(state.manualOwned).filter(name => state.manualOwned[name]);
 
   if (!state.pals.length && !manualNames.length) {
-    grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Importez une sauvegarde (onglet Import), ou pointez vos Pals manuellement depuis le Paldex (mode "Tous les Pals").</p>`;
+    grid.innerHTML = `<p class="text-emerald-200/60 col-span-full">Pointez vos Pals manuellement depuis le Paldex (mode "Tous les Pals").</p>`;
     warningBox.textContent = "";
     lastOwnedCollection = [];
     return;

@@ -94,10 +94,9 @@
     <h1 class="font-title text-xl md:text-2xl text-amber-300 flex items-center gap-2">
       🐾 Assistant Élevage <span class="text-emerald-400">Palworld</span>
     </h1>
-    <div id="save-status" class="text-xs md:text-sm text-emerald-300/70">Aucune sauvegarde chargée</div>
+    <div id="save-status" class="text-xs md:text-sm text-emerald-300/70">Aucun Pal pointé</div>
   </div>
   <nav class="max-w-6xl mx-auto px-4 flex gap-2 pb-2 text-sm font-semibold overflow-x-auto">
-    <button data-tab="import" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">📁 Import</button>
     <button data-tab="collection" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">📋 Collection</button>
     <button data-tab="breeding" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">🥚 Élevage</button>
     <button data-tab="map" class="tab-btn px-3 py-1.5 rounded-full bg-emerald-900/50 whitespace-nowrap">🗺️ Carte</button>
@@ -106,40 +105,8 @@
 
 <main class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- ONGLET IMPORT -->
-  <section id="tab-import" class="tab-panel space-y-4">
-    <div class="bg-[#14201a] border border-emerald-900/60 rounded-2xl p-6">
-      <h2 class="font-title text-lg text-amber-300 mb-2">Importer votre sauvegarde</h2>
-      <p class="text-sm text-emerald-100/70 mb-3">
-        Tout le décodage se fait dans votre navigateur — rien n'est envoyé sur un serveur.
-        Sélectionnez votre fichier <code class="bg-black/30 px-1 rounded">Level.sav</code> (le plus complet,
-        contient tous les Pals) ou un fichier joueur individuel dans
-        <code class="bg-black/30 px-1 rounded">Players\&lt;PlayerUID&gt;.sav</code>, situés par défaut dans :<br>
-        <code class="bg-black/30 px-1 rounded text-xs">%LocalAppData%\Pal\Saved\SaveGames\&lt;id&gt;\&lt;world_id&gt;\Level.sav</code>
-      </p>
-      <div id="dropzone" class="border-2 border-dashed border-emerald-700/60 rounded-xl p-10 text-center cursor-pointer hover:border-amber-400 transition">
-        <p class="text-emerald-200/80">Glissez-déposez votre <b>.sav</b> ici, ou touchez pour parcourir</p>
-        <input id="file-input" type="file" accept=".sav" class="hidden">
-      </div>
-      <div id="import-result" class="mt-4 text-sm"></div>
-      <div id="logs-toggle-wrap" class="mt-3 hidden">
-        <button id="logs-toggle" class="text-xs text-emerald-300/70 underline">Afficher les logs de parsing</button>
-        <pre id="logs-box" class="hidden mt-2 bg-black/40 rounded-lg p-3 text-[11px] text-emerald-200/70 max-h-64 overflow-auto whitespace-pre-wrap"></pre>
-      </div>
-      <div id="player-picker" class="mt-4 hidden">
-        <label class="text-sm text-emerald-200/70">Joueur :</label>
-        <select id="player-select" class="ml-2 bg-black/30 border border-emerald-800 rounded px-2 py-1 text-sm"></select>
-      </div>
-      <div class="mt-4 text-xs text-emerald-100/50">
-        Aucune donnée ne quitte votre appareil : traitement en mémoire, résultat stocké
-        uniquement dans le localStorage de ce navigateur.
-      </div>
-      <button id="reset-btn" class="mt-2 text-xs text-red-300/80 underline hidden">Effacer les données locales</button>
-    </div>
-  </section>
-
   <!-- ONGLET COLLECTION -->
-  <section id="tab-collection" class="tab-panel hidden space-y-4">
+  <section id="tab-collection" class="tab-panel space-y-4">
     <div id="collection-mode-toggle"></div>
     <div class="flex flex-wrap items-center gap-2">
       <input id="collection-filter" type="text" placeholder="Filtrer par nom..." class="bg-black/30 border border-emerald-800 rounded px-3 py-1.5 text-sm flex-1 min-w-[180px]">
