@@ -2,7 +2,7 @@
 // de l'app pour forcer la mise à jour du cache chez les utilisateurs déjà
 // installés (discipline anti-cache-bust — sans ça, ils resteraient bloqués
 // sur une ancienne version indéfiniment).
-const CACHE_VERSION = "v20";
+const CACHE_VERSION = "v21";
 const CACHE_NAME = `palworld-breeding-${CACHE_VERSION}`;
 
 // Chemins relatifs à la racine du service worker (fonctionne aussi bien à
@@ -149,6 +149,26 @@ const APP_SHELL = [
   "./pal-icon-woolipop.webp",
   "./pal-icon-wumpo-botan.webp",
   "./pal-icon-wumpo.webp",
+  "./pal-icon-amione.webp",
+  "./pal-icon-azurmane.webp",
+  "./pal-icon-azurobe-cryst.webp",
+  "./pal-icon-bakemi.webp",
+  "./pal-icon-bastigor.webp",
+  "./pal-icon-beakon-cryst.webp",
+  "./pal-icon-braloha.webp",
+  "./pal-icon-bulldosu.webp",
+  "./pal-icon-bushi-noct.webp",
+  "./pal-icon-caprity-noct.webp",
+  "./pal-icon-carnibora.webp",
+  "./pal-icon-celaray-lux.webp",
+  "./pal-icon-celesdir.webp",
+  "./pal-icon-chillet-ignis.webp",
+  "./pal-icon-clovee.webp",
+  "./pal-icon-croajiro.webp",
+  "./pal-icon-croajiro-noct.webp",
+  "./pal-icon-cryolinx-terra.webp",
+  "./pal-icon-dazemu.webp",
+  "./pal-icon-dazzi-noct.webp",
   "./app.js",
   "./state.js",
   "./breedingCalculator.js",
