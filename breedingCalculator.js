@@ -160,7 +160,7 @@ export class BreedingCalculator {
    * profondes d'abord, la dernière produit `targetName`), ou `null` si
    * introuvable dans la limite de profondeur.
    */
-  findBreedingPath(targetName, ownedNames, maxDepth = 4) {
+  findBreedingPath(targetName, ownedNames, maxDepth = 6) {
     const uniqueOwned = [...new Set(ownedNames)];
     const achievable = new Map(); // nom -> { recipe: {parentA, parentB} | null }
     for (const name of uniqueOwned) achievable.set(name, { recipe: null });
